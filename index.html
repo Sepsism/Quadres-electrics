@@ -3,18 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>App Quadre Elèctric - Drag & Drop</title>
+  <title>App Quadre Elèctric - Responsive</title>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 
   <style>
     /* 🎛️ PANTELL DE CONTROL DE MIDES */
     :root {
+      /* Mides per a Ordinador o Tauleta */
       --ample-modul-1: 50px;       
       --alcada-carril: 75px;       
-      --posicio-carril-y: 80px;    
+      --posicio-carril-y: 80px;
+      --mida-text: 0.75rem;
+    }
+
+    /* 🔥 NOU: Mides automàtiques per a Telèfons Mòbils (Reduïdes ~35%) */
+    @media (max-width: 600px) {
+      :root {
+        --ample-modul-1: 32px;       /* PIA més estret */
+        --alcada-carril: 48px;       /* Carril reduït proporcionalment */
+        --posicio-carril-y: 52px;    /* Posició ajustada a la nova mida */
+        --mida-text: 0.65rem;        /* Lletra una mica més petita per cabre */
+      }
     }
 
     body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; color: #333; }
@@ -43,7 +54,7 @@
       overflow-x: auto; 
       align-items: flex-start; 
       position: relative; 
-      min-height: 180px; /* Assegurem que la fila tingui alçada encara que estigui buida */
+      min-height: 140px; 
     }
 
     .fila::before {
@@ -69,11 +80,10 @@
       position: relative; 
       box-sizing: border-box; 
       z-index: 1; 
-      cursor: grab; /* Icona de mà per indicar que es pot agafar */
+      cursor: grab;
     }
     .componente:active { cursor: grabbing; }
 
-    /* Classe visual quan estem arrossegant un element */
     .fantasma-drag { opacity: 0.4; background-color: #e0f7fa; border-radius: 8px; }
 
     .mod-1 { width: var(--ample-modul-1); } 
@@ -106,12 +116,12 @@
     .componente select, .componente input { 
       width: 100%; 
       padding: 4px; 
-      font-size: 0.75rem; 
+      font-size: var(--mida-text); /* Ara usa la variable que canvia de mida */
       text-align: center; 
       border: 1px solid #ccc; 
       border-radius: 3px; 
       box-sizing: border-box;
-      cursor: text; /* Cursor normal a dins dels textos */
+      cursor: text;
     }
     
     .btn-eliminar { 
@@ -119,7 +129,7 @@
       background: transparent; 
       border: none; 
       text-decoration: underline;
-      font-size: 0.7rem; 
+      font-size: var(--mida-text); 
       cursor: pointer; 
       margin-top: 5px; 
       padding: 2px;
@@ -135,15 +145,15 @@
     .close-btn:hover { color: #e74c3c; }
     
     .grid-components { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 20px; }
-    .opcio-pia { border: 2px solid #ecf0f1; border-radius: 8px; padding: 10px; width: 100px; cursor: pointer; transition: all 0.2s ease; background-color: #fafafa; }
+    .opcio-pia { border: 2px solid #ecf0f1; border-radius: 8px; padding: 10px; width: 85px; cursor: pointer; transition: all 0.2s ease; background-color: #fafafa; }
     .opcio-pia:hover, .opcio-pia:active { border-color: #3498db; background-color: #ebf5fb; transform: scale(1.05); }
-    .opcio-pia img { width: 100%; height: 80px; object-fit: contain; }
+    .opcio-pia img { width: 100%; height: 70px; object-fit: contain; }
     .opcio-pia p { font-size: 0.75rem; margin: 8px 0 0 0; color: #34495e; font-weight: bold; line-height: 1.2; }
   </style>
 </head>
 <body>
 
-  <h1>⚡ App Croquis Quadre V9</h1>
+  <h1>⚡ App Croquis Quadre V10</h1>
 
   <div class="controls hide-on-pdf">
     <button class="btn-afegir" onclick="obrirModal()">+ Afegir PIA monofàsic</button>
@@ -206,14 +216,13 @@
       
       document.getElementById('quadre').appendChild(fila);
 
-      // 🔥 MÀGIA DEL DRAG & DROP: Inicialitzem Sortable a la nova fila
       new Sortable(fila, {
-        group: 'quadre', // Això permet arrossegar PIAS d'una fila a una altra
-        animation: 150, // Animació suau a l'ordenar
-        ghostClass: 'fantasma-drag', // La classe visual de l'espai buit
-        delay: 200, // Retard de 200ms en mòbils (mantén premut per arrossegar)
-        delayOnTouchOnly: true, // Així pots fer scroll per la pantalla sense arrossegar per error
-        filter: 'input, select, button', // Impedeix arrossegar si cliques als textos o botons
+        group: 'quadre', 
+        animation: 150, 
+        ghostClass: 'fantasma-drag', 
+        delay: 200, 
+        delayOnTouchOnly: true, 
+        filter: 'input, select, button', 
         preventOnFilter: false
       });
     }
