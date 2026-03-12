@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>App Quadre Elèctric - Text Multilínia</title>
+  <title>App Quadre Elèctric - Multilínia Real</title>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
@@ -63,22 +63,31 @@
 
     .inputs-container { width: 95%; display: flex; flex-direction: column; gap: 4px; background: #ffffff; padding: 6px 4px; border-radius: 4px; border: 1px dashed #bdc3c7; margin-top: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
     
-    .componente select, .componente input { 
+    /* 🔥 Modificat per acceptar TEXTAREA i que s'adapti */
+    .componente select, .componente textarea { 
       width: 100%; padding: 4px; font-size: var(--mida-text); text-align: center; border: 1px solid #ccc; 
       border-radius: 3px; box-sizing: border-box; cursor: text; font-weight: bold; font-family: inherit;
     }
     .componente select { cursor: pointer; text-overflow: ellipsis; }
+    
+    /* El Textarea que simula el salt de línia automàtic en viu */
+    .componente textarea { 
+      resize: none; overflow: hidden; line-height: 1.1; min-height: 2.2em; 
+      word-wrap: break-word; hyphens: auto; 
+    }
+    
     .input-fix { background-color: #f4f7f6; color: #7f8c8d; cursor: default !important; }
 
     .btn-eliminar { color: #e74c3c; background: transparent; border: none; text-decoration: underline; font-size: var(--mida-text); cursor: pointer; margin-top: 5px; padding: 2px; }
 
     /* 📱 BARRA INFERIOR DE BOTONS */
-    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background-color: #ffffff; display: flex; justify-content: space-between; gap: 10px; padding: 10px 15px 15px 15px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 500; }
-    .btn-app { flex: 1; padding: 12px 5px; border: none; border-radius: 8px; font-weight: bold; font-size: 0.85rem; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background-color: #ffffff; display: flex; justify-content: space-between; gap: 5px; padding: 10px 5px 15px 5px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 500; }
+    .btn-app { flex: 1; padding: 10px 2px; border: none; border-radius: 6px; font-weight: bold; font-size: 0.7rem; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .btn-app:active { transform: scale(0.95); }
     .btn-app-verd { background-color: #27ae60; }
     .btn-app-blau { background-color: #3498db; }
     .btn-app-vermell { background-color: #e74c3c; }
+    .btn-app-groc { background-color: #f39c12; }
 
     /* MODAL */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(3px); }
@@ -94,34 +103,16 @@
     /* ========================================= */
     /* 🖨️ MÀGIA: AJUSTOS PER A L'EXPORTACIÓ PDF  */
     /* ========================================= */
-    .mode-impresio #quadre { display: inline-flex; flex-direction: column; align-items: stretch; width: max-content; min-width: 40%; }
+    .mode-impresio { width: max-content !important; min-width: 100%; border: none !important; padding-right: 20px !important; }
+    .mode-impresio #quadre { display: inline-flex; flex-direction: column; align-items: stretch; width: max-content; }
     .mode-impresio .fila { width: auto !important; min-width: max-content; overflow: visible !important; padding-right: 30px; border-bottom: none !important; }
-    
-    /* Netegem el contenidor de fons de les etiquetes al PDF */
     .mode-impresio .inputs-container { border: none !important; box-shadow: none !important; background: transparent !important; }
-    
-    /* 🔥 Amaguem els controls normals al generar PDF per posar el text net */
     .mode-impresio .inputs-container > *:not(.etiqueta-print) { display: none !important; }
-    
-    /* 🔥 NOU: L'etiqueta de text lliure que només surt al PDF */
-    .etiqueta-print {
-      display: none; /* Amagat en la vista de la App */
-      width: 100%;
-      text-align: center;
-      color: #2c3e50;
-      padding: 2px 0;
-    }
+    .etiqueta-print { display: none; width: 100%; text-align: center; color: #2c3e50; padding: 2px 0; }
     .mode-impresio .etiqueta-print { display: flex !important; flex-direction: column; gap: 2px; }
-    
     .amp-print { font-weight: bold; font-size: 0.8rem; }
-    .linia-print {
-      font-size: 0.65rem;
-      line-height: 1.1;
-      white-space: normal; /* Permet el salt de línia */
-      word-wrap: break-word; /* Trenca paraules llargues si no hi caben */
-      overflow-wrap: break-word;
-      hyphens: auto; /* Afegeix el guionet quan trenca paraules */
-    }
+    /* pre-wrap permet que els salts de línia del textarea passin al PDF */
+    .linia-print { font-size: 0.65rem; line-height: 1.1; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
   </style>
 </head>
 <body>
@@ -134,15 +125,23 @@
 
   <div class="bottom-bar" id="barra-botons">
     <button class="btn-app btn-app-verd" onclick="obrirModal()">
-      <span style="font-size: 1.2rem;">🔌</span> PIA Monofàsic
+      <span style="font-size: 1.2rem;">🔌</span> PIA
     </button>
     <button class="btn-app btn-app-blau" onclick="afegirFila()">
-      <span style="font-size: 1.2rem;">➖</span> Afegir Fila
+      <span style="font-size: 1.2rem;">➖</span> Fila
+    </button>
+    <button class="btn-app btn-app-groc" onclick="exportarDades()">
+      <span style="font-size: 1.2rem;">💾</span> Guardar
+    </button>
+    <button class="btn-app btn-app-groc" onclick="document.getElementById('file-import').click()">
+      <span style="font-size: 1.2rem;">📂</span> Obrir
     </button>
     <button class="btn-app btn-app-vermell" onclick="generarPDF()">
       <span style="font-size: 1.2rem;">📄</span> PDF
     </button>
   </div>
+
+  <input type="file" id="file-import" accept=".json" style="display: none;" onchange="carregarDades(event)">
 
   <div id="modal-pias" class="modal">
     <div class="modal-content">
@@ -198,7 +197,7 @@
         ghostClass: 'fantasma-drag', 
         delay: 200, 
         delayOnTouchOnly: true, 
-        filter: 'input, select, button', 
+        filter: 'input, select, textarea, button', 
         preventOnFilter: false
       });
     }
@@ -226,21 +225,38 @@
       tancarModal(); 
     }
 
+    // 🔥 Funció per fer que el textarea creixi automàticament cap avall
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    // 🔥 Nova lògica unificada: triïs el que triïs, es converteix en Textarea multilínea
     function canviLinia(selectElement) {
+      let inputElement = selectElement.nextElementSibling;
       if (selectElement.value === 'Personalitzat') {
         selectElement.style.display = 'none'; 
-        let inputElement = selectElement.nextElementSibling;
+        inputElement.value = '';
         inputElement.style.display = 'block'; 
         inputElement.focus(); 
+        autoResize(inputElement);
+      } else if (selectElement.value !== '') {
+        selectElement.style.display = 'none';
+        inputElement.value = selectElement.value;
+        inputElement.style.display = 'block';
+        autoResize(inputElement);
       }
     }
 
+    // Si esborres el text del textarea, torna a aparèixer el desplegable
     function revisarInputBuida(inputElement) {
       if (inputElement.value.trim() === '') {
         inputElement.style.display = 'none';
         let selectElement = inputElement.previousElementSibling;
         selectElement.value = ''; 
         selectElement.style.display = 'block';
+      } else {
+        autoResize(inputElement);
       }
     }
 
@@ -249,6 +265,7 @@
       
       const comp = document.createElement('div');
       comp.className = `componente mod-${espacios}`;
+      comp.setAttribute('data-tipo', tipo);
       
       let htmlInputs = '';
       let selectAmperatge = `
@@ -266,12 +283,12 @@
       if (tipo === 'sobretensions') {
         htmlInputs = `
           ${selectAmperatge}
-          <input type="text" class="input-fix" value="Sobretensions" readonly />
+          <textarea class="input-fix in-linia" readonly rows="2">Sobretensions</textarea>
         `;
       } else if (tipo === 'diferencial') {
         htmlInputs = `
           ${selectAmperatge}
-          <select onchange="canviLinia(this)" required>
+          <select class="sel-linia" onchange="canviLinia(this)" required>
             <option value="" disabled selected>Nom...</option>
             <option value="Diferencial 1">Diferencial 1</option>
             <option value="Diferencial 2">Diferencial 2</option>
@@ -280,12 +297,12 @@
             <option value="Diferencial 5">Diferencial 5</option>
             <option value="Personalitzat">✏️ Personalitzat...</option>
           </select>
-          <input type="text" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" />
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
         `;
       } else {
         htmlInputs = `
           ${selectAmperatge}
-          <select onchange="canviLinia(this)" required>
+          <select class="sel-linia" onchange="canviLinia(this)" required>
             <option value="" disabled selected>Línia...</option>
             <option value="Endolls">Endolls</option>
             <option value="Endolls humits">Endolls humits</option>
@@ -304,7 +321,7 @@
             <option value="Piscina">Piscina</option>
             <option value="Personalitzat">✏️ Personalitzat...</option>
           </select>
-          <input type="text" placeholder="Escriu la línia..." style="display:none;" onblur="revisarInputBuida(this)" />
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
         `;
       }
       
@@ -319,27 +336,131 @@
       filaActiva.appendChild(comp);
     }
 
+    /* ========================================= */
+    /* 💾 FUNCIONS PER GUARDAR I OBRIR PROJECTES */
+    /* ========================================= */
+    function exportarDades() {
+      const titol = document.querySelector('.titol-pdf-input').value;
+      const dades = { titol: titol, files: [] };
+
+      document.querySelectorAll('.fila').forEach(fila => {
+        const filaData = [];
+        fila.querySelectorAll('.componente').forEach(comp => {
+          let espacios = 2;
+          if (comp.classList.contains('mod-1')) espacios = 1;
+          if (comp.classList.contains('mod-4')) espacios = 4;
+
+          const img = comp.querySelector('img').getAttribute('src');
+          const tipo = comp.getAttribute('data-tipo') || 'pia';
+
+          const selAmp = comp.querySelector('.sel-amp');
+          const amperatge = selAmp ? selAmp.value : '16A';
+
+          let linia = '';
+          const inputFix = comp.querySelector('.input-fix');
+          
+          if (inputFix) {
+             linia = inputFix.value;
+          } else {
+             const selLinia = comp.querySelector('.sel-linia');
+             const inLinia = comp.querySelector('.in-linia');
+             
+             if (inLinia && inLinia.style.display !== 'none') {
+               linia = inLinia.value;
+             } else if (selLinia) {
+               linia = selLinia.value;
+             }
+          }
+
+          filaData.push({ espacios, img, tipo, amperatge, linia });
+        });
+        dades.files.push(filaData);
+      });
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dades));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      
+      let nomFitxer = titol.trim() || 'quadre';
+      nomFitxer = nomFitxer.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
+      
+      downloadAnchorNode.setAttribute("download", nomFitxer);
+      document.body.appendChild(downloadAnchorNode); 
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+
+    function carregarDades(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const dades = JSON.parse(e.target.result);
+          document.getElementById('quadre').innerHTML = '';
+          document.querySelector('.titol-pdf-input').value = dades.titol || 'Esquema Unifilar - Quadre Elèctric';
+          contadorFiles = 0;
+
+          dades.files.forEach(filaData => {
+            afegirFila(); 
+            
+            filaData.forEach(compData => {
+              insertarComponente(compData.espacios, compData.img, compData.tipo);
+              
+              const filaActiva = document.querySelector('.fila-activa');
+              const nouComp = filaActiva.lastElementChild;
+              
+              const selAmp = nouComp.querySelector('.sel-amp');
+              if (selAmp) selAmp.value = compData.amperatge;
+              
+              const inputFix = nouComp.querySelector('.input-fix');
+              if (!inputFix) {
+                const selLinia = nouComp.querySelector('.sel-linia');
+                const inLinia = nouComp.querySelector('.in-linia');
+                
+                if (selLinia) {
+                  let opcioExisteix = Array.from(selLinia.options).some(opt => opt.value === compData.linia);
+                  if (opcioExisteix && compData.linia !== '') {
+                    selLinia.value = compData.linia;
+                    canviLinia(selLinia); 
+                  } else if (compData.linia !== '') {
+                    selLinia.value = 'Personalitzat';
+                    canviLinia(selLinia); 
+                    inLinia.value = compData.linia;
+                    autoResize(inLinia);
+                  }
+                }
+              }
+            });
+          });
+        } catch (err) {
+          alert("Error al llegir l'arxiu. Assegura't que has seleccionat un arxiu guardat amb aquesta app.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = ''; 
+    }
+
+    /* ========================================= */
+    /* 📄 FUNCIÓ DE PDF */
+    /* ========================================= */
     function generarPDF() {
       const element = document.getElementById('area-impresio');
       const barraBotons = document.getElementById('barra-botons');
       
-      // 1. Preparar els textos multilínea nets abans de la foto
       document.querySelectorAll('.inputs-container').forEach(container => {
-        // Obtenim l'amperatge
         let ampSelect = container.querySelector('.sel-amp');
         let amperatgeText = ampSelect ? ampSelect.value : '';
 
-        // Obtenim el nom de la línia (intel·ligència per trobar on està escrit)
         let liniaText = '';
         let inputFix = container.querySelector('.input-fix');
         
         if (inputFix) {
           liniaText = inputFix.value;
         } else {
-          // Busquem el segon select (després del d'amperatge) i el input ocult
-          let selects = container.querySelectorAll('select');
-          let selLinia = selects.length > 1 ? selects[1] : null;
-          let inLinia = container.querySelector('input[type="text"]:not(.input-fix)');
+          let selLinia = container.querySelector('.sel-linia');
+          let inLinia = container.querySelector('.in-linia');
           
           if (selLinia && selLinia.style.display !== 'none' && selLinia.value !== '') {
             liniaText = selLinia.value;
@@ -348,7 +469,6 @@
           }
         }
 
-        // Creem el bloc de text net i l'afegim
         let divPrint = document.createElement('div');
         divPrint.className = 'etiqueta-print';
         divPrint.innerHTML = `
@@ -358,10 +478,14 @@
         container.appendChild(divPrint);
       });
 
-      // 2. Amaguem controls i activem el mode impressió
       barraBotons.style.display = 'none'; 
       document.querySelectorAll('.fila').forEach(f => f.classList.remove('fila-activa')); 
       element.classList.add('mode-impresio'); 
+
+      let ampladaPx = element.scrollWidth; 
+      let ampladaMm = (ampladaPx * 25.4) / 96; 
+      let ampladaPDF = ampladaMm + 20; 
+      if (ampladaPDF < 150) ampladaPDF = 150;
 
       let nomFitxer = document.querySelector('.titol-pdf-input').value.trim() || 'quadre';
       nomFitxer = nomFitxer.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
@@ -370,15 +494,13 @@
         margin:       10,
         filename:     nomFitxer,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        html2canvas:  { scale: 2, useCORS: true, windowWidth: ampladaPx + 50 }, 
+        jsPDF:        { unit: 'mm', format: [ampladaPDF, 210], orientation: 'landscape' }
       };
 
-      // 3. Generem el PDF i desfem els canvis
       html2pdf().set(opt).from(element).save().then(() => {
         barraBotons.style.display = 'flex';
         element.classList.remove('mode-impresio');
-        // Esborrem les etiquetes creades per a la foto
         document.querySelectorAll('.etiqueta-print').forEach(el => el.remove());
       });
     }
