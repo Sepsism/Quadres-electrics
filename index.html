@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>App Quadre Elèctric - Drag & Drop</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+
+  <style>
+    /* 🎛️ PANTELL DE CONTROL DE MIDES */
+    :root {
+      --ample-modul-1: 50px;       
+      --alcada-carril: 75px;       
+      --posicio-carril-y: 80px;    
+    }
+
+    body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; color: #333; }
+    h1 { font-size: 1.3rem; text-align: center; color: #2c3e50; }
+    
+    .controls { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    
+    .btn-afegir { background-color: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; padding: 15px 20px; border-radius: 5px; font-size: 1.1rem; width: 100%; box-shadow: 0 4px 6px rgba(39, 174, 96, 0.3); }
+    .btn-afegir:active { background-color: #219653; transform: translateY(2px); }
+
+    .btn-fila { width: 100%; padding: 10px; background-color: #3498db; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+    .btn-pdf { width: 100%; padding: 12px; background-color: #e74c3c; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 20px; font-size: 1.1rem;}
+
+    #area-impresio { background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #ddd; }
+    .titol-pdf { text-align: center; margin-bottom: 20px; color: #2c3e50; font-size: 1.5rem; border-bottom: 2px solid #2c3e50; padding-bottom: 10px;}
+
+    /* LA FILA */
+    .fila { 
+      background-color: #f8f9fa; 
+      border: 2px solid #dcdde1; 
+      border-radius: 5px; 
+      margin-bottom: 25px; 
+      padding: 15px 10px; 
+      display: flex; 
+      gap: 2px; 
+      overflow-x: auto; 
+      align-items: flex-start; 
+      position: relative; 
+      min-height: 180px; /* Assegurem que la fila tingui alçada encara que estigui buida */
+    }
+
+    .fila::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: var(--posicio-carril-y); 
+      height: var(--alcada-carril); 
+      background-image: url('carril_din.png'); 
+      background-repeat: repeat-x; 
+      background-size: auto 100%; 
+      z-index: 0; 
+    }
+
+    /* EL COMPONENT */
+    .componente {
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: flex-start;
+      flex-shrink: 0; 
+      position: relative; 
+      box-sizing: border-box; 
+      z-index: 1; 
+      cursor: grab; /* Icona de mà per indicar que es pot agafar */
+    }
+    .componente:active { cursor: grabbing; }
+
+    /* Classe visual quan estem arrossegant un element */
+    .fantasma-drag { opacity: 0.4; background-color: #e0f7fa; border-radius: 8px; }
+
+    .mod-1 { width: var(--ample-modul-1); } 
+    .mod-2 { width: calc(var(--ample-modul-1) * 2); } 
+    .mod-4 { width: calc(var(--ample-modul-1) * 4); } 
+
+    .img-component { 
+      width: 100%; 
+      height: auto; 
+      object-fit: contain; 
+      pointer-events: none; 
+      display: block;
+      filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.2)); 
+    }
+
+    .inputs-container { 
+      width: 95%; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 4px; 
+      background: #ffffff; 
+      padding: 6px 4px; 
+      border-radius: 4px;
+      border: 1px dashed #bdc3c7; 
+      margin-top: 15px; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    
+    .componente select, .componente input { 
+      width: 100%; 
+      padding: 4px; 
+      font-size: 0.75rem; 
+      text-align: center; 
+      border: 1px solid #ccc; 
+      border-radius: 3px; 
+      box-sizing: border-box;
+      cursor: text; /* Cursor normal a dins dels textos */
+    }
+    
+    .btn-eliminar { 
+      color: #e74c3c; 
+      background: transparent; 
+      border: none; 
+      text-decoration: underline;
+      font-size: 0.7rem; 
+      cursor: pointer; 
+      margin-top: 5px; 
+      padding: 2px;
+    }
+
+    .hide-on-pdf { display: block; }
+
+    /* MODAL */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+    .modal-content { background-color: #fefefe; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; position: relative; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-content h2 { margin-top: 0; color: #2c3e50; font-size: 1.3rem; }
+    .close-btn { position: absolute; top: 10px; right: 15px; color: #95a5a6; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
+    .close-btn:hover { color: #e74c3c; }
+    
+    .grid-components { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 20px; }
+    .opcio-pia { border: 2px solid #ecf0f1; border-radius: 8px; padding: 10px; width: 100px; cursor: pointer; transition: all 0.2s ease; background-color: #fafafa; }
+    .opcio-pia:hover, .opcio-pia:active { border-color: #3498db; background-color: #ebf5fb; transform: scale(1.05); }
+    .opcio-pia img { width: 100%; height: 80px; object-fit: contain; }
+    .opcio-pia p { font-size: 0.75rem; margin: 8px 0 0 0; color: #34495e; font-weight: bold; line-height: 1.2; }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ App Croquis Quadre V9</h1>
+
+  <div class="controls hide-on-pdf">
+    <button class="btn-afegir" onclick="obrirModal()">+ Afegir PIA monofàsic</button>
+  </div>
+  
+  <button class="btn-fila hide-on-pdf" onclick="afegirFila()">+ Afegir Fila (Carril DIN)</button>
+  <button class="btn-pdf hide-on-pdf" onclick="generarPDF()">📄 Exportar Quadre a PDF</button>
+  
+  <div id="area-impresio">
+    <div class="titol-pdf">Esquema Unifilar - Quadre Elèctric</div>
+    <div id="quadre">
+      </div>
+  </div>
+
+  <div id="modal-pias" class="modal hide-on-pdf">
+    <div class="modal-content">
+      <span class="close-btn" onclick="tancarModal()">&times;</span>
+      <h2>Quin component vols muntar?</h2>
+      <div class="grid-components">
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'sobretensions.png')">
+          <img src="sobretensions.png" alt="Sobretensions" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Sobretensions<br>(4 Mòduls)</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'diferencial.png')">
+          <img src="diferencial.png" alt="Diferencial" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Diferencial<br>(2 Mòduls)</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'pia_normal.png')">
+          <img src="pia_normal.png" alt="PIA Normal" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>PIA Normal<br>(2 Mòduls)</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(1, 'pia_estret.png')">
+          <img src="pia_estret.png" alt="PIA Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>PIA Estret<br>(1 Mòdul)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let contadorFiles = 0;
+
+    function afegirFila() {
+      contadorFiles++;
+      const idFila = 'fila-' + contadorFiles;
+      
+      const fila = document.createElement('div');
+      fila.className = 'fila';
+      fila.id = idFila;
+      
+      document.querySelectorAll('.fila').forEach(f => f.style.borderColor = '#dcdde1');
+      fila.style.borderColor = '#2ecc71'; 
+      
+      fila.onclick = function(e) {
+        if(e.target === this || e.target.className === 'fila') { 
+            document.querySelectorAll('.fila').forEach(f => f.style.borderColor = '#dcdde1');
+            this.style.borderColor = '#2ecc71';
+        }
+      };
+      
+      document.getElementById('quadre').appendChild(fila);
+
+      // 🔥 MÀGIA DEL DRAG & DROP: Inicialitzem Sortable a la nova fila
+      new Sortable(fila, {
+        group: 'quadre', // Això permet arrossegar PIAS d'una fila a una altra
+        animation: 150, // Animació suau a l'ordenar
+        ghostClass: 'fantasma-drag', // La classe visual de l'espai buit
+        delay: 200, // Retard de 200ms en mòbils (mantén premut per arrossegar)
+        delayOnTouchOnly: true, // Així pots fer scroll per la pantalla sense arrossegar per error
+        filter: 'input, select, button', // Impedeix arrossegar si cliques als textos o botons
+        preventOnFilter: false
+      });
+    }
+
+    function obrirModal() {
+      let filaActiva = Array.from(document.querySelectorAll('.fila')).find(f => f.style.borderColor === 'rgb(46, 204, 113)');
+      if (!filaActiva) {
+        alert("Atenció: Selecciona una fila primer fent clic al seu fons (es posarà la vora verda).");
+        return;
+      }
+      document.getElementById('modal-pias').style.display = 'flex';
+    }
+
+    function tancarModal() {
+      document.getElementById('modal-pias').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('modal-pias');
+      if (event.target === modal) tancarModal();
+    }
+
+    function seleccionarElement(espacios, rutaImagen) {
+      insertarComponente(espacios, rutaImagen);
+      tancarModal(); 
+    }
+
+    function insertarComponente(espacios, rutaImagen) {
+      let filaActiva = Array.from(document.querySelectorAll('.fila')).find(f => f.style.borderColor === 'rgb(46, 204, 113)');
+      
+      const comp = document.createElement('div');
+      comp.className = `componente mod-${espacios}`;
+      
+      comp.innerHTML = `
+        <img src="${rutaImagen}" alt="Component" class="img-component">
+        <div class="inputs-container">
+            <select class="hide-on-pdf-input">
+              <option value="10A">10A</option>
+              <option value="16A" selected>16A</option>
+              <option value="20A">20A</option>
+              <option value="25A">25A</option>
+              <option value="32A">32A</option>
+              <option value="40A">40A</option>
+              <option value="63A">63A</option>
+            </select>
+            <input type="text" placeholder="Línia" />
+            <button class="btn-eliminar hide-on-pdf" onclick="this.parentElement.parentElement.remove()">Eliminar</button>
+        </div>
+      `;
+      
+      filaActiva.appendChild(comp);
+    }
+
+    function generarPDF() {
+      const botonsEliminar = document.querySelectorAll('.btn-eliminar');
+      botonsEliminar.forEach(b => b.style.display = 'none');
+      
+      document.querySelectorAll('.fila').forEach(f => f.style.borderColor = '#dcdde1');
+
+      const element = document.getElementById('area-impresio');
+      const opt = {
+        margin:       10,
+        filename:     'croquis_quadre.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        botonsEliminar.forEach(b => b.style.display = 'inline-block');
+      });
+    }
+
+    window.onload = afegirFila;
+  </script>
+
+</body>
+</html>
