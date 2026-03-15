@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Quadre Elèctric - Multilínia Real</title>
+  <title>App Quadre Elèctric - Contactors</title>
   
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,6 +11,7 @@
   <meta name="theme-color" content="#ffffff">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="pia_normal.png">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 
@@ -69,18 +70,12 @@
 
     .inputs-container { width: 95%; display: flex; flex-direction: column; gap: 4px; background: #ffffff; padding: 6px 4px; border-radius: 4px; border: 1px dashed #bdc3c7; margin-top: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
     
-    /* 🔥 Modificat per acceptar TEXTAREA i que s'adapti */
     .componente select, .componente textarea { 
       width: 100%; padding: 4px; font-size: var(--mida-text); text-align: center; border: 1px solid #ccc; 
       border-radius: 3px; box-sizing: border-box; cursor: text; font-weight: bold; font-family: inherit;
     }
     .componente select { cursor: pointer; text-overflow: ellipsis; }
-    
-    /* El Textarea que simula el salt de línia automàtic en viu */
-    .componente textarea { 
-      resize: none; overflow: hidden; line-height: 1.1; min-height: 2.2em; 
-      word-wrap: break-word; hyphens: auto; 
-    }
+    .componente textarea { resize: none; overflow: hidden; line-height: 1.1; min-height: 2.2em; word-wrap: break-word; hyphens: auto; }
     
     .input-fix { background-color: #f4f7f6; color: #7f8c8d; cursor: default !important; }
 
@@ -97,7 +92,7 @@
 
     /* MODAL */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(3px); }
-    .modal-content { background-color: #fefefe; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; position: relative; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-content { background-color: #fefefe; padding: 20px; border-radius: 12px; width: 95%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-content h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; margin-bottom: 20px;}
     .close-btn { position: absolute; top: 10px; right: 15px; color: #95a5a6; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
     .grid-components { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
@@ -109,22 +104,21 @@
     /* ========================================= */
     /* 🖨️ MÀGIA: AJUSTOS PER A L'EXPORTACIÓ PDF  */
     /* ========================================= */
-    .mode-impresio { width: max-content !important; min-width: 100%; border: none !important; padding-right: 20px !important; }
+    .mode-impresio { width: max-content !important; border: none !important; padding-right: 20px !important; }
     .mode-impresio #quadre { display: inline-flex; flex-direction: column; align-items: stretch; width: max-content; }
     .mode-impresio .fila { width: auto !important; min-width: max-content; overflow: visible !important; padding-right: 30px; border-bottom: none !important; }
     .mode-impresio .inputs-container { border: none !important; box-shadow: none !important; background: transparent !important; }
     .mode-impresio .inputs-container > *:not(.etiqueta-print) { display: none !important; }
     .etiqueta-print { display: none; width: 100%; text-align: center; color: #2c3e50; padding: 2px 0; }
     .mode-impresio .etiqueta-print { display: flex !important; flex-direction: column; gap: 2px; }
-    .amp-print { font-weight: bold; font-size: 0.8rem; }
-    /* pre-wrap permet que els salts de línia del textarea passin al PDF */
+    .amp-print { font-weight: bold; font-size: 0.8rem; min-height: 1.2em; }
     .linia-print { font-size: 0.65rem; line-height: 1.1; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
   </style>
 </head>
 <body>
 
   <div id="area-impresio">
-    <input type="text" class="titol-pdf-input" value="Esquema Unifilar - Quadre Elèctric" placeholder="Introdueix el nom del quadre...">
+    <input type="text" class="titol-pdf-input" value='"Nom del quadre"' placeholder="Introdueix el nom del quadre...">
     <div id="quadre">
       </div>
   </div>
@@ -156,7 +150,7 @@
       <div class="grid-components">
         <div class="opcio-pia" onclick="seleccionarElement(4, 'sobretensions.png', 'sobretensions')">
           <img src="sobretensions.png" alt="Sobretensions" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
-          <p>Sobretensions</p>
+          <p>Sobretens.</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(2, 'diferencial.png', 'diferencial')">
           <img src="diferencial.png" alt="Diferencial" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
@@ -169,6 +163,19 @@
         <div class="opcio-pia" onclick="seleccionarElement(1, 'pia_estret.png', 'pia')">
           <img src="pia_estret.png" alt="PIA Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>PIA Estret</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'repartidor.png', 'repartidor')">
+          <img src="repartidor.png" alt="Repartidor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Repartidor</p>
+        </div>
+        
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'contactor.png', 'contactor')">
+          <img src="contactor.png" alt="Contactor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Contactor</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(1, 'contactor_estret.png', 'contactor')">
+          <img src="contactor_estret.png" alt="Contactor Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Contact. Estret</p>
         </div>
       </div>
     </div>
@@ -231,13 +238,11 @@
       tancarModal(); 
     }
 
-    // 🔥 Funció per fer que el textarea creixi automàticament cap avall
     function autoResize(textarea) {
       textarea.style.height = 'auto';
       textarea.style.height = textarea.scrollHeight + 'px';
     }
 
-    // 🔥 Nova lògica unificada: triïs el que triïs, es converteix en Textarea multilínea
     function canviLinia(selectElement) {
       let inputElement = selectElement.nextElementSibling;
       if (selectElement.value === 'Personalitzat') {
@@ -254,7 +259,6 @@
       }
     }
 
-    // Si esborres el text del textarea, torna a aparèixer el desplegable
     function revisarInputBuida(inputElement) {
       if (inputElement.value.trim() === '') {
         inputElement.style.display = 'none';
@@ -291,6 +295,10 @@
           ${selectAmperatge}
           <textarea class="input-fix in-linia" readonly rows="2">Sobretensions</textarea>
         `;
+      } else if (tipo === 'repartidor') {
+        htmlInputs = `
+          <textarea class="input-fix in-linia" readonly rows="2">Repartidor</textarea>
+        `;
       } else if (tipo === 'diferencial') {
         htmlInputs = `
           ${selectAmperatge}
@@ -301,6 +309,17 @@
             <option value="Diferencial 3">Diferencial 3</option>
             <option value="Diferencial 4">Diferencial 4</option>
             <option value="Diferencial 5">Diferencial 5</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      } else if (tipo === 'contactor') {
+        // 🔥 Nou menú específic només per als contactors
+        htmlInputs = `
+          ${selectAmperatge}
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Contactor">Contactor</option>
             <option value="Personalitzat">✏️ Personalitzat...</option>
           </select>
           <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
@@ -360,7 +379,7 @@
           const tipo = comp.getAttribute('data-tipo') || 'pia';
 
           const selAmp = comp.querySelector('.sel-amp');
-          const amperatge = selAmp ? selAmp.value : '16A';
+          const amperatge = selAmp ? selAmp.value : '';
 
           let linia = '';
           const inputFix = comp.querySelector('.input-fix');
@@ -388,7 +407,7 @@
       downloadAnchorNode.setAttribute("href", dataStr);
       
       let nomFitxer = titol.trim() || 'quadre';
-      nomFitxer = nomFitxer.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
+      nomFitxer = nomFitxer.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
       
       downloadAnchorNode.setAttribute("download", nomFitxer);
       document.body.appendChild(downloadAnchorNode); 
@@ -405,7 +424,7 @@
         try {
           const dades = JSON.parse(e.target.result);
           document.getElementById('quadre').innerHTML = '';
-          document.querySelector('.titol-pdf-input').value = dades.titol || 'Esquema Unifilar - Quadre Elèctric';
+          document.querySelector('.titol-pdf-input').value = dades.titol || '"Nom del quadre"';
           contadorFiles = 0;
 
           dades.files.forEach(filaData => {
@@ -418,7 +437,7 @@
               const nouComp = filaActiva.lastElementChild;
               
               const selAmp = nouComp.querySelector('.sel-amp');
-              if (selAmp) selAmp.value = compData.amperatge;
+              if (selAmp && compData.amperatge) selAmp.value = compData.amperatge;
               
               const inputFix = nouComp.querySelector('.input-fix');
               if (!inputFix) {
@@ -489,19 +508,26 @@
       element.classList.add('mode-impresio'); 
 
       let ampladaPx = element.scrollWidth; 
+      let alcadaPx = element.scrollHeight; 
+      
       let ampladaMm = (ampladaPx * 25.4) / 96; 
+      let alcadaMm = (alcadaPx * 25.4) / 96; 
+      
       let ampladaPDF = ampladaMm + 20; 
       if (ampladaPDF < 150) ampladaPDF = 150;
 
+      let alcadaPDF = alcadaMm + 20;
+      if (alcadaPDF < 210) alcadaPDF = 210;
+
       let nomFitxer = document.querySelector('.titol-pdf-input').value.trim() || 'quadre';
-      nomFitxer = nomFitxer.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
+      nomFitxer = nomFitxer.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
 
       const opt = {
         margin:       10,
         filename:     nomFitxer,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, windowWidth: ampladaPx + 50 }, 
-        jsPDF:        { unit: 'mm', format: [ampladaPDF, 210], orientation: 'landscape' }
+        jsPDF:        { unit: 'mm', format: [ampladaPDF, alcadaPDF], orientation: 'portrait' }
       };
 
       html2pdf().set(opt).from(element).save().then(() => {
@@ -516,4 +542,3 @@
 
 </body>
 </html>
-
