@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Quadres Elèctrics</title>
+  <title>App Quadre Elèctric - Autoguardat</title>
   
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -36,13 +36,15 @@
     body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px 0 80px 0; color: #333; }
     h1 { display: none; }
 
-    /* 📝 TÍTOL EDITABLE */
-    .titol-pdf-input { 
-      display: block; width: 90%; margin: 0 auto 20px auto; text-align: center; color: #2c3e50; font-size: 1.4rem; 
-      font-weight: bold; border: none; border-bottom: 2px dashed #bdc3c7; padding-bottom: 10px; background: transparent; font-family: inherit;
-    }
-    .titol-pdf-input:focus { outline: none; border-bottom: 2px solid #3498db; }
-    .mode-impresio .titol-pdf-input { border-bottom: none !important; }
+    /* 📝 TÍTOL EDITABLE AMB BOTÓ DE NETEJAR */
+    .capcalera { display: flex; justify-content: center; align-items: center; gap: 10px; width: 90%; margin: 0 auto 20px auto; border-bottom: 2px dashed #bdc3c7; padding-bottom: 5px; }
+    .titol-pdf-input { flex-grow: 1; text-align: center; color: #2c3e50; font-size: 1.4rem; font-weight: bold; border: none; background: transparent; font-family: inherit; margin: 0; padding: 0;}
+    .titol-pdf-input:focus { outline: none; }
+    .btn-netejar { background: none; border: none; font-size: 1.4rem; cursor: pointer; padding: 5px; color: #7f8c8d; transition: transform 0.2s; }
+    .btn-netejar:active { transform: scale(0.9); }
+    
+    .mode-impresio .capcalera { border-bottom: none !important; }
+    .mode-impresio .btn-netejar { display: none !important; }
 
     #area-impresio { background-color: #ffffff; padding: 20px 0; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; width: 100%; overflow: hidden;}
 
@@ -118,7 +120,10 @@
 <body>
 
   <div id="area-impresio">
-    <input type="text" class="titol-pdf-input" value="" placeholder="Introdueix el nom del quadre...">
+    <div class="capcalera">
+      <input type="text" class="titol-pdf-input" value="" placeholder="Introdueix el nom del quadre...">
+      <button class="btn-netejar" onclick="netejarQuadre()" title="Netejar quadre complet">🗑️</button>
+    </div>
     <div id="quadre">
       </div>
   </div>
@@ -141,7 +146,7 @@
     </button>
   </div>
 
-  <input type="file" id="file-import" accept=".json" style="display: none;" onchange="carregarDades(event)">
+  <input type="file" id="file-import" accept=".json" style="display: none;" onchange="carregarFitxerExterna(event)">
 
   <div id="modal-pias" class="modal">
     <div class="modal-content">
@@ -183,6 +188,10 @@
   <script>
     let contadorFiles = 0;
 
+    // 🔥 ESCOLTEM QUALSEVOL CANVI A LA PANTALLA PER AUTOGUARDAR
+    document.addEventListener('input', autoGuardar);
+    document.addEventListener('change', autoGuardar);
+
     function afegirFila() {
       contadorFiles++;
       const idFila = 'fila-' + contadorFiles;
@@ -210,8 +219,11 @@
         delay: 200, 
         delayOnTouchOnly: true, 
         filter: 'input, select, textarea, button', 
-        preventOnFilter: false
+        preventOnFilter: false,
+        onEnd: autoGuardar // 🔥 Autoguardar quan arrossegues un component
       });
+
+      autoGuardar();
     }
 
     function obrirModal() {
@@ -352,24 +364,21 @@
         <img src="${rutaImagen}" alt="Component" class="img-component">
         <div class="inputs-container">
             ${htmlInputs}
-            <button class="btn-eliminar" onclick="this.parentElement.parentElement.remove()">Eliminar</button>
+            <button class="btn-eliminar" onclick="this.parentElement.parentElement.remove(); autoGuardar();">Eliminar</button>
         </div>
       `;
       
       filaActiva.appendChild(comp);
+      autoGuardar();
     }
 
     /* ========================================= */
-    /* 💾 FUNCIONS PER GUARDAR I OBRIR PROJECTES */
+    /* 💾 AUTOGUARDAT I CÀRREGA DE PROJECTES     */
     /* ========================================= */
-    function exportarDades() {
-      // 🔥 VALIDACIÓ: El nom és obligatori
-      const titol = document.querySelector('.titol-pdf-input').value.trim();
-      if (titol === '') {
-        alert('Posa un nom al quadre abans de desar-lo.');
-        return;
-      }
-
+    
+    // Funció invisible que captura l'estat actual i l'escriu a la RAM del navegador
+    function autoGuardar() {
+      const titol = document.querySelector('.titol-pdf-input').value;
       const dades = { titol: titol, files: [] };
 
       document.querySelectorAll('.fila').forEach(fila => {
@@ -378,91 +387,107 @@
           let espacios = 2;
           if (comp.classList.contains('mod-1')) espacios = 1;
           if (comp.classList.contains('mod-4')) espacios = 4;
-
           const img = comp.querySelector('img').getAttribute('src');
           const tipo = comp.getAttribute('data-tipo') || 'pia';
-
           const selAmp = comp.querySelector('.sel-amp');
           const amperatge = selAmp ? selAmp.value : '';
-
           let linia = '';
           const inputFix = comp.querySelector('.input-fix');
-          
           if (inputFix) {
              linia = inputFix.value;
           } else {
              const selLinia = comp.querySelector('.sel-linia');
              const inLinia = comp.querySelector('.in-linia');
-             
              if (inLinia && inLinia.style.display !== 'none') {
                linia = inLinia.value;
              } else if (selLinia) {
                linia = selLinia.value;
              }
           }
-
           filaData.push({ espacios, img, tipo, amperatge, linia });
         });
         dades.files.push(filaData);
       });
+      
+      localStorage.setItem('quadre_autosave', JSON.stringify(dades));
+    }
 
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dades));
+    function netejarQuadre() {
+      if(confirm('Estàs segur que vols esborrar tot el quadre i començar de nou?')) {
+        localStorage.removeItem('quadre_autosave');
+        document.getElementById('quadre').innerHTML = '';
+        document.querySelector('.titol-pdf-input').value = '';
+        contadorFiles = 0;
+        afegirFila();
+      }
+    }
+
+    // Funcio comuna per reconstruir el quadre tant des de l'arxiu JSON com de l'Autoguardat
+    function restaurarQuadre(dades) {
+      document.getElementById('quadre').innerHTML = '';
+      document.querySelector('.titol-pdf-input').value = dades.titol || '';
+      contadorFiles = 0;
+
+      if (dades.files && dades.files.length > 0) {
+        dades.files.forEach(filaData => {
+          afegirFila(); 
+          filaData.forEach(compData => {
+            insertarComponente(compData.espacios, compData.img, compData.tipo);
+            const filaActiva = document.querySelector('.fila-activa');
+            const nouComp = filaActiva.lastElementChild;
+            const selAmp = nouComp.querySelector('.sel-amp');
+            if (selAmp && compData.amperatge) selAmp.value = compData.amperatge;
+            const inputFix = nouComp.querySelector('.input-fix');
+            if (!inputFix) {
+              const selLinia = nouComp.querySelector('.sel-linia');
+              const inLinia = nouComp.querySelector('.in-linia');
+              if (selLinia) {
+                let opcioExisteix = Array.from(selLinia.options).some(opt => opt.value === compData.linia);
+                if (opcioExisteix && compData.linia !== '') {
+                  selLinia.value = compData.linia;
+                  canviLinia(selLinia); 
+                } else if (compData.linia !== '') {
+                  selLinia.value = 'Personalitzat';
+                  canviLinia(selLinia); 
+                  inLinia.value = compData.linia;
+                  autoResize(inLinia);
+                }
+              }
+            }
+          });
+        });
+      } else {
+        afegirFila();
+      }
+    }
+
+    function exportarDades() {
+      const titol = document.querySelector('.titol-pdf-input').value.trim();
+      if (titol === '') { alert('Posa un nom al quadre abans de desar-lo.'); return; }
+      
+      // Forcem l'autoguardat abans d'exportar per seguretat
+      autoGuardar();
+      const dadesString = localStorage.getItem('quadre_autosave');
+      
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(dadesString);
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute("href", dataStr);
-      
       let nomFitxer = titol.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
-      
       downloadAnchorNode.setAttribute("download", nomFitxer);
       document.body.appendChild(downloadAnchorNode); 
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
     }
 
-    function carregarDades(event) {
+    function carregarFitxerExterna(event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
           const dades = JSON.parse(e.target.result);
-          document.getElementById('quadre').innerHTML = '';
-          // 🔥 Si ve buit l'arxiu per algun motiu antic, el deixem buit perquè salti el placeholder
-          document.querySelector('.titol-pdf-input').value = dades.titol || '';
-          contadorFiles = 0;
-
-          dades.files.forEach(filaData => {
-            afegirFila(); 
-            
-            filaData.forEach(compData => {
-              insertarComponente(compData.espacios, compData.img, compData.tipo);
-              
-              const filaActiva = document.querySelector('.fila-activa');
-              const nouComp = filaActiva.lastElementChild;
-              
-              const selAmp = nouComp.querySelector('.sel-amp');
-              if (selAmp && compData.amperatge) selAmp.value = compData.amperatge;
-              
-              const inputFix = nouComp.querySelector('.input-fix');
-              if (!inputFix) {
-                const selLinia = nouComp.querySelector('.sel-linia');
-                const inLinia = nouComp.querySelector('.in-linia');
-                
-                if (selLinia) {
-                  let opcioExisteix = Array.from(selLinia.options).some(opt => opt.value === compData.linia);
-                  if (opcioExisteix && compData.linia !== '') {
-                    selLinia.value = compData.linia;
-                    canviLinia(selLinia); 
-                  } else if (compData.linia !== '') {
-                    selLinia.value = 'Personalitzat';
-                    canviLinia(selLinia); 
-                    inLinia.value = compData.linia;
-                    autoResize(inLinia);
-                  }
-                }
-              }
-            });
-          });
+          restaurarQuadre(dades);
+          autoGuardar(); // Actualitzem la memòria interna amb el nou quadre carregat
         } catch (err) {
           alert("Error al llegir l'arxiu. Assegura't que has seleccionat un arxiu guardat amb aquesta app.");
         }
@@ -475,12 +500,8 @@
     /* 📄 FUNCIÓ DE PDF */
     /* ========================================= */
     function generarPDF() {
-      // 🔥 VALIDACIÓ: El nom és obligatori
       const titol = document.querySelector('.titol-pdf-input').value.trim();
-      if (titol === '') {
-        alert('Posa un nom al quadre abans de desar-lo.');
-        return;
-      }
+      if (titol === '') { alert('Posa un nom al quadre abans de desar-lo.'); return; }
 
       const element = document.getElementById('area-impresio');
       const barraBotons = document.getElementById('barra-botons');
@@ -488,7 +509,6 @@
       document.querySelectorAll('.inputs-container').forEach(container => {
         let ampSelect = container.querySelector('.sel-amp');
         let amperatgeText = ampSelect ? ampSelect.value : '';
-
         let liniaText = '';
         let inputFix = container.querySelector('.input-fix');
         
@@ -497,7 +517,6 @@
         } else {
           let selLinia = container.querySelector('.sel-linia');
           let inLinia = container.querySelector('.in-linia');
-          
           if (selLinia && selLinia.style.display !== 'none' && selLinia.value !== '') {
             liniaText = selLinia.value;
           } else if (inLinia && inLinia.style.display !== 'none') {
@@ -520,7 +539,6 @@
 
       let ampladaPx = element.scrollWidth; 
       let alcadaPx = element.scrollHeight; 
-      
       let ampladaMm = (ampladaPx * 25.4) / 96; 
       let alcadaMm = (alcadaPx * 25.4) / 96; 
       
@@ -547,7 +565,17 @@
       });
     }
 
-    window.onload = afegirFila;
+    // 🚀 L'APP ARRANCA AQUÍ
+    window.onload = function() {
+      // Intentem llegir l'autoguardat
+      const memoriaInterna = localStorage.getItem('quadre_autosave');
+      if (memoriaInterna) {
+        restaurarQuadre(JSON.parse(memoriaInterna));
+      } else {
+        // Si és el primer cop que entra (o ha netejat), creem una fila en blanc
+        afegirFila();
+      }
+    };
   </script>
 
 </body>
