@@ -118,7 +118,7 @@
 <body>
 
   <div id="area-impresio">
-    <input type="text" class="titol-pdf-input" value='"Nom del quadre"' placeholder="Introdueix el nom del quadre...">
+    <input type="text" class="titol-pdf-input" value="" placeholder="Introdueix el nom del quadre...">
     <div id="quadre">
       </div>
   </div>
@@ -168,7 +168,6 @@
           <img src="repartidor.png" alt="Repartidor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Repartidor</p>
         </div>
-        
         <div class="opcio-pia" onclick="seleccionarElement(2, 'contactor.png', 'contactor')">
           <img src="contactor.png" alt="Contactor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Contactor</p>
@@ -314,7 +313,6 @@
           <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
         `;
       } else if (tipo === 'contactor') {
-        // 🔥 Nou menú específic només per als contactors
         htmlInputs = `
           ${selectAmperatge}
           <select class="sel-linia" onchange="canviLinia(this)" required>
@@ -365,7 +363,13 @@
     /* 💾 FUNCIONS PER GUARDAR I OBRIR PROJECTES */
     /* ========================================= */
     function exportarDades() {
-      const titol = document.querySelector('.titol-pdf-input').value;
+      // 🔥 VALIDACIÓ: El nom és obligatori
+      const titol = document.querySelector('.titol-pdf-input').value.trim();
+      if (titol === '') {
+        alert('Posa un nom al quadre abans de desar-lo.');
+        return;
+      }
+
       const dades = { titol: titol, files: [] };
 
       document.querySelectorAll('.fila').forEach(fila => {
@@ -406,8 +410,7 @@
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute("href", dataStr);
       
-      let nomFitxer = titol.trim() || 'quadre';
-      nomFitxer = nomFitxer.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
+      let nomFitxer = titol.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
       
       downloadAnchorNode.setAttribute("download", nomFitxer);
       document.body.appendChild(downloadAnchorNode); 
@@ -424,7 +427,8 @@
         try {
           const dades = JSON.parse(e.target.result);
           document.getElementById('quadre').innerHTML = '';
-          document.querySelector('.titol-pdf-input').value = dades.titol || '"Nom del quadre"';
+          // 🔥 Si ve buit l'arxiu per algun motiu antic, el deixem buit perquè salti el placeholder
+          document.querySelector('.titol-pdf-input').value = dades.titol || '';
           contadorFiles = 0;
 
           dades.files.forEach(filaData => {
@@ -471,6 +475,13 @@
     /* 📄 FUNCIÓ DE PDF */
     /* ========================================= */
     function generarPDF() {
+      // 🔥 VALIDACIÓ: El nom és obligatori
+      const titol = document.querySelector('.titol-pdf-input').value.trim();
+      if (titol === '') {
+        alert('Posa un nom al quadre abans de desar-lo.');
+        return;
+      }
+
       const element = document.getElementById('area-impresio');
       const barraBotons = document.getElementById('barra-botons');
       
@@ -519,8 +530,7 @@
       let alcadaPDF = alcadaMm + 20;
       if (alcadaPDF < 210) alcadaPDF = 210;
 
-      let nomFitxer = document.querySelector('.titol-pdf-input').value.trim() || 'quadre';
-      nomFitxer = nomFitxer.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
+      let nomFitxer = titol.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
 
       const opt = {
         margin:       10,
