@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>App Quadre Elèctric - Autoguardat</title>
+  <title>App Quadre Elèctric - Alertes Pròpies</title>
   
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -92,7 +92,7 @@
     .btn-app-vermell { background-color: #e74c3c; }
     .btn-app-groc { background-color: #f39c12; }
 
-    /* MODAL */
+    /* MODAL components */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(3px); }
     .modal-content { background-color: #fefefe; padding: 20px; border-radius: 12px; width: 95%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .modal-content h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; margin-bottom: 20px;}
@@ -122,7 +122,7 @@
   <div id="area-impresio">
     <div class="capcalera">
       <input type="text" class="titol-pdf-input" value="" placeholder="Introdueix el nom del quadre...">
-      <button class="btn-netejar" onclick="netejarQuadre()" title="Netejar quadre complet">🗑️</button>
+      <button class="btn-netejar" onclick="demanarNetejarQuadre()" title="Netejar quadre complet">🗑️</button>
     </div>
     <div id="quadre">
       </div>
@@ -185,8 +185,52 @@
     </div>
   </div>
 
+  <div id="modal-missatge" class="modal" style="z-index: 2000;">
+    <div class="modal-content" style="max-width: 320px; padding: 25px;">
+      <h2 id="titol-missatge" style="margin-bottom: 10px;">Quadres Elèctrics</h2>
+      <p id="text-missatge" style="font-size: 0.95rem; color: #34495e; margin-bottom: 25px; line-height: 1.4;"></p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button id="btn-cancelar-missatge" class="btn-app btn-app-vermell" style="display: none; padding: 12px; font-size: 0.85rem; flex: 1;">Cancel·lar</button>
+        <button id="btn-acceptar-missatge" class="btn-app btn-app-blau" style="padding: 12px; font-size: 0.85rem; flex: 1;">D'acord</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let contadorFiles = 0;
+    let accioConfirmada = null; // Variable per guardar l'acció al confirmar
+
+    // 🔥 SISTEMA D'ALERTES PERSONALITZADES
+    function mostrarAlerta(text) {
+      document.getElementById('titol-missatge').innerText = 'Quadres Elèctrics';
+      document.getElementById('text-missatge').innerText = text;
+      document.getElementById('btn-cancelar-missatge').style.display = 'none';
+      document.getElementById('modal-missatge').style.display = 'flex';
+      
+      document.getElementById('btn-acceptar-missatge').onclick = function() {
+        document.getElementById('modal-missatge').style.display = 'none';
+      };
+    }
+
+    function mostrarConfirmacio(text, accio) {
+      document.getElementById('titol-missatge').innerText = 'Quadres Elèctrics';
+      document.getElementById('text-missatge').innerText = text;
+      document.getElementById('btn-cancelar-missatge').style.display = 'block';
+      document.getElementById('modal-missatge').style.display = 'flex';
+      
+      accioConfirmada = accio;
+      
+      document.getElementById('btn-cancelar-missatge').onclick = function() {
+        document.getElementById('modal-missatge').style.display = 'none';
+        accioConfirmada = null;
+      };
+      
+      document.getElementById('btn-acceptar-missatge').onclick = function() {
+        document.getElementById('modal-missatge').style.display = 'none';
+        if (accioConfirmada) accioConfirmada();
+        accioConfirmada = null;
+      };
+    }
 
     // 🔥 ESCOLTEM QUALSEVOL CANVI A LA PANTALLA PER AUTOGUARDAR
     document.addEventListener('input', autoGuardar);
@@ -220,7 +264,7 @@
         delayOnTouchOnly: true, 
         filter: 'input, select, textarea, button', 
         preventOnFilter: false,
-        onEnd: autoGuardar // 🔥 Autoguardar quan arrossegues un component
+        onEnd: autoGuardar
       });
 
       autoGuardar();
@@ -229,7 +273,8 @@
     function obrirModal() {
       let filaActiva = document.querySelector('.fila-activa');
       if (!filaActiva) {
-        alert("Atenció: Selecciona una fila primer fent clic al seu fons (es posarà verdós).");
+        // Canviat alert per la nostra finestra nativa
+        mostrarAlerta("Selecciona una fila primer fent clic al seu fons (es posarà verdós).");
         return;
       }
       document.getElementById('modal-pias').style.display = 'flex';
@@ -239,9 +284,12 @@
       document.getElementById('modal-pias').style.display = 'none';
     }
 
+    // Tanquem modals si es clica fora
     window.onclick = function(event) {
-      const modal = document.getElementById('modal-pias');
-      if (event.target === modal) tancarModal();
+      const modalPias = document.getElementById('modal-pias');
+      if (event.target === modalPias) tancarModal();
+      
+      /* No deixem tancar l'alerta clicant fora per obligar a llegir */
     }
 
     function seleccionarElement(espacios, rutaImagen, tipo) {
@@ -376,7 +424,6 @@
     /* 💾 AUTOGUARDAT I CÀRREGA DE PROJECTES     */
     /* ========================================= */
     
-    // Funció invisible que captura l'estat actual i l'escriu a la RAM del navegador
     function autoGuardar() {
       const titol = document.querySelector('.titol-pdf-input').value;
       const dades = { titol: titol, files: [] };
@@ -412,17 +459,17 @@
       localStorage.setItem('quadre_autosave', JSON.stringify(dades));
     }
 
-    function netejarQuadre() {
-      if(confirm('Estàs segur que vols esborrar tot el quadre i començar de nou?')) {
+    // Funcio canviada per usar el nostre Confirm personalitzat
+    function demanarNetejarQuadre() {
+      mostrarConfirmacio('Estàs segur que vols esborrar tot el quadre i començar de nou?', function() {
         localStorage.removeItem('quadre_autosave');
         document.getElementById('quadre').innerHTML = '';
         document.querySelector('.titol-pdf-input').value = '';
         contadorFiles = 0;
         afegirFila();
-      }
+      });
     }
 
-    // Funcio comuna per reconstruir el quadre tant des de l'arxiu JSON com de l'Autoguardat
     function restaurarQuadre(dades) {
       document.getElementById('quadre').innerHTML = '';
       document.querySelector('.titol-pdf-input').value = dades.titol || '';
@@ -463,9 +510,11 @@
 
     function exportarDades() {
       const titol = document.querySelector('.titol-pdf-input').value.trim();
-      if (titol === '') { alert('Posa un nom al quadre abans de desar-lo.'); return; }
+      if (titol === '') { 
+        mostrarAlerta('Posa un nom al quadre abans de desar-lo.'); 
+        return; 
+      }
       
-      // Forcem l'autoguardat abans d'exportar per seguretat
       autoGuardar();
       const dadesString = localStorage.getItem('quadre_autosave');
       
@@ -487,9 +536,9 @@
         try {
           const dades = JSON.parse(e.target.result);
           restaurarQuadre(dades);
-          autoGuardar(); // Actualitzem la memòria interna amb el nou quadre carregat
+          autoGuardar();
         } catch (err) {
-          alert("Error al llegir l'arxiu. Assegura't que has seleccionat un arxiu guardat amb aquesta app.");
+          mostrarAlerta("Error al llegir l'arxiu. Assegura't que has seleccionat un arxiu guardat amb aquesta app.");
         }
       };
       reader.readAsText(file);
@@ -501,7 +550,10 @@
     /* ========================================= */
     function generarPDF() {
       const titol = document.querySelector('.titol-pdf-input').value.trim();
-      if (titol === '') { alert('Posa un nom al quadre abans de desar-lo.'); return; }
+      if (titol === '') { 
+        mostrarAlerta('Posa un nom al quadre abans de desar-lo.'); 
+        return; 
+      }
 
       const element = document.getElementById('area-impresio');
       const barraBotons = document.getElementById('barra-botons');
@@ -567,12 +619,10 @@
 
     // 🚀 L'APP ARRANCA AQUÍ
     window.onload = function() {
-      // Intentem llegir l'autoguardat
       const memoriaInterna = localStorage.getItem('quadre_autosave');
       if (memoriaInterna) {
         restaurarQuadre(JSON.parse(memoriaInterna));
       } else {
-        // Si és el primer cop que entra (o ha netejat), creem una fila en blanc
         afegirFila();
       }
     };
