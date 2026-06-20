@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>App Quadre Elèctric - Alertes Pròpies</title>
+  <title>App Quadre Elèctric - PDF Perfecte</title>
   
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -106,9 +106,16 @@
     /* ========================================= */
     /* 🖨️ MÀGIA: AJUSTOS PER A L'EXPORTACIÓ PDF  */
     /* ========================================= */
-    .mode-impresio { width: max-content !important; border: none !important; padding-right: 20px !important; }
+    /* 🔥 HEM MODIFICAT AIXÒ: Ara els marges es fan en blanc sobre el propi quadre, no a la impressora */
+    .mode-impresio { 
+        padding: 40px !important; /* Dóna aire per dalt, baix, esquerra i dreta */
+        width: max-content !important; 
+        border: none !important; 
+        background-color: #ffffff !important;
+    }
     .mode-impresio #quadre { display: inline-flex; flex-direction: column; align-items: stretch; width: max-content; }
-    .mode-impresio .fila { width: auto !important; min-width: max-content; overflow: visible !important; padding-right: 30px; border-bottom: none !important; }
+    /* Sense marges per la dreta a la fila per evitar que creixi el paper a un costat */
+    .mode-impresio .fila { width: auto !important; min-width: max-content; overflow: visible !important; border-bottom: none !important; padding-right: 0 !important; }
     .mode-impresio .inputs-container { border: none !important; box-shadow: none !important; background: transparent !important; }
     .mode-impresio .inputs-container > *:not(.etiqueta-print) { display: none !important; }
     .etiqueta-print { display: none; width: 100%; text-align: center; color: #2c3e50; padding: 2px 0; }
@@ -198,7 +205,7 @@
 
   <script>
     let contadorFiles = 0;
-    let accioConfirmada = null; // Variable per guardar l'acció al confirmar
+    let accioConfirmada = null; 
 
     // 🔥 SISTEMA D'ALERTES PERSONALITZADES
     function mostrarAlerta(text) {
@@ -232,7 +239,6 @@
       };
     }
 
-    // 🔥 ESCOLTEM QUALSEVOL CANVI A LA PANTALLA PER AUTOGUARDAR
     document.addEventListener('input', autoGuardar);
     document.addEventListener('change', autoGuardar);
 
@@ -273,7 +279,6 @@
     function obrirModal() {
       let filaActiva = document.querySelector('.fila-activa');
       if (!filaActiva) {
-        // Canviat alert per la nostra finestra nativa
         mostrarAlerta("Selecciona una fila primer fent clic al seu fons (es posarà verdós).");
         return;
       }
@@ -284,12 +289,9 @@
       document.getElementById('modal-pias').style.display = 'none';
     }
 
-    // Tanquem modals si es clica fora
     window.onclick = function(event) {
       const modalPias = document.getElementById('modal-pias');
       if (event.target === modalPias) tancarModal();
-      
-      /* No deixem tancar l'alerta clicant fora per obligar a llegir */
     }
 
     function seleccionarElement(espacios, rutaImagen, tipo) {
@@ -459,7 +461,6 @@
       localStorage.setItem('quadre_autosave', JSON.stringify(dades));
     }
 
-    // Funcio canviada per usar el nostre Confirm personalitzat
     function demanarNetejarQuadre() {
       mostrarConfirmacio('Estàs segur que vols esborrar tot el quadre i començar de nou?', function() {
         localStorage.removeItem('quadre_autosave');
@@ -546,7 +547,7 @@
     }
 
     /* ========================================= */
-    /* 📄 FUNCIÓ DE PDF */
+    /* 📄 FUNCIÓ DE PDF TOTALMENT ARREGLADA */
     /* ========================================= */
     function generarPDF() {
       const titol = document.querySelector('.titol-pdf-input').value.trim();
@@ -554,6 +555,9 @@
         mostrarAlerta('Posa un nom al quadre abans de desar-lo.'); 
         return; 
       }
+
+      // 🔥 TRUC VITAL: Forcem l'scroll a dalt per evitar l'espai en blanc al PDF
+      window.scrollTo(0, 0);
 
       const element = document.getElementById('area-impresio');
       const barraBotons = document.getElementById('barra-botons');
@@ -589,25 +593,28 @@
       document.querySelectorAll('.fila').forEach(f => f.classList.remove('fila-activa')); 
       element.classList.add('mode-impresio'); 
 
+      // Ara mesurem les dimensions exactes després d'aplicar el padding de mode impressió
       let ampladaPx = element.scrollWidth; 
       let alcadaPx = element.scrollHeight; 
+      
       let ampladaMm = (ampladaPx * 25.4) / 96; 
       let alcadaMm = (alcadaPx * 25.4) / 96; 
-      
-      let ampladaPDF = ampladaMm + 20; 
-      if (ampladaPDF < 150) ampladaPDF = 150;
-
-      let alcadaPDF = alcadaMm + 20;
-      if (alcadaPDF < 210) alcadaPDF = 210;
 
       let nomFitxer = titol.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
 
       const opt = {
-        margin:       10,
+        margin:       0, // 🔥 Sense marges artificials de la impressora!
         filename:     nomFitxer,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, windowWidth: ampladaPx + 50 }, 
-        jsPDF:        { unit: 'mm', format: [ampladaPDF, alcadaPDF], orientation: 'portrait' }
+        image:        { type: 'jpeg', quality: 1 },
+        html2canvas:  { 
+          scale: 2, 
+          useCORS: true, 
+          scrollY: 0, // Segon filtre de seguretat per evitar l'espai blanc
+          scrollX: 0,
+          windowWidth: document.documentElement.scrollWidth // Evita que es talli per la dreta
+        }, 
+        // Creem un paper exactament de la mida que ocupa l'esquema sencer
+        jsPDF:        { unit: 'mm', format: [ampladaMm, alcadaMm], orientation: 'portrait' }
       };
 
       html2pdf().set(opt).from(element).save().then(() => {
