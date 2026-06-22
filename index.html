@@ -3,109 +3,739 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>App Quadre Elèctric Profissional</title>
+  <title>App Quadre Elèctric - Trifàsics</title>
+  
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="pia_normal.png">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 
   <style>
-    :root { --ample-modul: 45px; --alcada-img: 130px; }
-    body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
-    
-    .fila { display: flex; gap: 5px; align-items: flex-end; padding: 20px 5px; border-bottom: 2px dashed #ccc; overflow-x: auto; min-height: 220px; }
-    .componente { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; background: white; padding: 5px; border-radius: 5px; }
-    
-    .mod-1 { width: calc(var(--ample-modul) * 1); }
-    .mod-2 { width: calc(var(--ample-modul) * 2); }
-    .mod-3 { width: calc(var(--ample-modul) * 3); }
-    .mod-4 { width: calc(var(--ample-modul) * 4); }
-    .mod-6 { width: calc(var(--ample-modul) * 6); }
+    /* 🎛️ PANTELL DE CONTROL DE MIDES */
+    :root {
+      --ample-modul-1: 50px;       
+      --alcada-carril: 75px;       
+      --posicio-carril-y: 80px;
+      --mida-text: 0.75rem;
+    }
 
-    .img-component { height: var(--alcada-img); width: auto; object-fit: contain; object-position: bottom; }
-    .inputs-container { width: 100%; display: flex; flex-direction: column; gap: 2px; margin-top: 5px; }
-    select, textarea { width: 100%; font-size: 0.65rem; text-align: center; }
+    @media (max-width: 600px) {
+      :root {
+        --ample-modul-1: 32px;       
+        --alcada-carril: 48px;       
+        --posicio-carril-y: 52px;    
+        --mida-text: 0.65rem;        
+      }
+    }
+
+    body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f4f7f6; margin: 0; padding: 15px 0 80px 0; color: #333; }
+    h1 { display: none; }
+
+    /* 📝 TÍTOL EDITABLE AMB BOTÓ DE NETEJAR */
+    .capcalera { display: flex; justify-content: center; align-items: center; gap: 10px; width: 90%; margin: 0 auto 20px auto; border-bottom: 2px dashed #bdc3c7; padding-bottom: 5px; }
+    .titol-pdf-input { flex-grow: 1; text-align: center; color: #2c3e50; font-size: 1.4rem; font-weight: bold; border: none; background: transparent; font-family: inherit; margin: 0; padding: 0;}
+    .titol-pdf-input:focus { outline: none; }
+    .btn-netejar { background: none; border: none; font-size: 1.4rem; cursor: pointer; padding: 5px; color: #7f8c8d; transition: transform 0.2s; }
+    .btn-netejar:active { transform: scale(0.9); }
     
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index: 1000; }
-    .modal-content { background:white; margin: 5% auto; padding: 20px; width: 90%; max-width: 500px; height: 80%; overflow-y: auto; border-radius: 10px; }
-    .btn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+    .mode-impresio .capcalera { border-bottom: none !important; }
+    .mode-impresio .btn-netejar { display: none !important; }
+
+    #area-impresio { background-color: #ffffff; padding: 20px 0; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; width: 100%; overflow: hidden;}
+
+    /* LA FILA */
+    .fila { 
+      background-color: #ffffff; border-bottom: 1px dashed #bdc3c7; padding: 15px 5px; display: flex; gap: 2px; 
+      overflow-x: auto; align-items: flex-start; position: relative; min-height: 140px; transition: background-color 0.3s ease; 
+    }
+    .fila-activa { background-color: #ebf7f1; }
+    .fila::before {
+      content: ''; position: absolute; left: 0; right: 0; top: var(--posicio-carril-y); height: var(--alcada-carril); 
+      background-image: url('carril_din.png'); background-repeat: repeat-x; background-size: auto 100%; z-index: 0; 
+    }
+
+    /* EL COMPONENT */
+    .componente { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; flex-shrink: 0; position: relative; box-sizing: border-box; z-index: 1; cursor: grab; }
+    .componente:active { cursor: grabbing; }
+    .fantasma-drag { opacity: 0.4; background-color: #e0f7fa; border-radius: 8px; }
+
+    /* 🔥 AFEGIDES LES MIDES EXTRA PER A TRIFÀSICS */
+    .mod-1 { width: var(--ample-modul-1); } 
+    .mod-2 { width: calc(var(--ample-modul-1) * 2); } 
+    .mod-3 { width: calc(var(--ample-modul-1) * 3); } 
+    .mod-4 { width: calc(var(--ample-modul-1) * 4); } 
+    .mod-5 { width: calc(var(--ample-modul-1) * 5); } 
+
+    .img-component { width: 100%; height: auto; object-fit: contain; pointer-events: none; display: block; filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.2)); }
+
+    .inputs-container { width: 95%; display: flex; flex-direction: column; gap: 4px; background: #ffffff; padding: 6px 4px; border-radius: 4px; border: 1px dashed #bdc3c7; margin-top: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; }
+    
+    .componente select, .componente textarea { 
+      width: 100%; padding: 4px; font-size: var(--mida-text); text-align: center; border: 1px solid #ccc; 
+      border-radius: 3px; box-sizing: border-box; cursor: text; font-weight: bold; font-family: inherit;
+    }
+    .componente select { cursor: pointer; text-overflow: ellipsis; }
+    .componente textarea { resize: none; overflow: hidden; line-height: 1.1; min-height: 2.2em; word-wrap: break-word; hyphens: auto; }
+    
+    .input-fix { background-color: #f4f7f6; color: #7f8c8d; cursor: default !important; }
+
+    .btn-eliminar { color: #e74c3c; background: transparent; border: none; text-decoration: underline; font-size: var(--mida-text); cursor: pointer; margin-top: 5px; padding: 2px; }
+
+    /* 📱 BARRA INFERIOR DE BOTONS */
+    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background-color: #ffffff; display: flex; justify-content: space-between; gap: 5px; padding: 10px 5px 15px 5px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 500; }
+    .btn-app { flex: 1; padding: 10px 2px; border: none; border-radius: 6px; font-weight: bold; font-size: 0.7rem; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .btn-app:active { transform: scale(0.95); }
+    .btn-app-verd { background-color: #27ae60; }
+    .btn-app-blau { background-color: #3498db; }
+    .btn-app-vermell { background-color: #e74c3c; }
+    .btn-app-groc { background-color: #f39c12; }
+
+    /* MODAL components */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+    .modal-content { background-color: #fefefe; padding: 20px; border-radius: 12px; width: 95%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .modal-content h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px;}
+    .close-btn { position: absolute; top: 10px; right: 15px; color: #95a5a6; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
+    
+    /* 🔥 Títols per separar categories al Modal */
+    .modal-categoria { width: 100%; text-align: left; font-size: 0.9rem; color: #7f8c8d; border-bottom: 2px solid #ecf0f1; margin: 15px 0 10px 0; padding-bottom: 5px; text-transform: uppercase; font-weight: bold;}
+    
+    .grid-components { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+    .opcio-pia { border: 2px solid #ecf0f1; border-radius: 8px; padding: 10px; width: 85px; cursor: pointer; transition: all 0.2s ease; background-color: #fafafa; }
+    .opcio-pia:active { border-color: #3498db; background-color: #ebf5fb; transform: scale(1.05); }
+    .opcio-pia img { width: 100%; height: 70px; object-fit: contain; }
+    .opcio-pia p { font-size: 0.7rem; margin: 8px 0 0 0; color: #34495e; font-weight: bold; line-height: 1.2; }
+
+    /* ========================================= */
+    /* 🖨️ MÀGIA: AJUSTOS PER A L'EXPORTACIÓ PDF  */
+    /* ========================================= */
+    .mode-impresio { padding: 40px !important; width: max-content !important; border: none !important; background-color: #ffffff !important; }
+    .mode-impresio #quadre { display: inline-flex; flex-direction: column; align-items: stretch; width: max-content; }
+    .mode-impresio .fila { width: auto !important; min-width: max-content; overflow: visible !important; border-bottom: none !important; padding-right: 0 !important; }
+    .mode-impresio .inputs-container { border: none !important; box-shadow: none !important; background: transparent !important; }
+    .mode-impresio .inputs-container > *:not(.etiqueta-print) { display: none !important; }
+    .etiqueta-print { display: none; width: 100%; text-align: center; color: #2c3e50; padding: 2px 0; }
+    .mode-impresio .etiqueta-print { display: flex !important; flex-direction: column; gap: 2px; }
+    .amp-print { font-weight: bold; font-size: 0.8rem; min-height: 1.2em; }
+    .linia-print { font-size: 0.65rem; line-height: 1.1; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
   </style>
 </head>
 <body>
 
-  <input type="text" id="titol" placeholder="Nom del quadre..." style="width: 100%; font-size: 1.2rem; text-align: center; border:none; background:transparent;">
-  <div id="quadre"></div>
-
-  <div style="position:fixed; bottom:0; width:100%; display:flex; gap:5px; padding:10px; background:white;">
-    <button onclick="afegirFila()">➕ Fila</button>
-    <button onclick="obrirModal()">🔌 Component</button>
-    <button onclick="generarPDF()">📄 PDF</button>
+  <div id="area-impresio">
+    <div class="capcalera">
+      <input type="text" class="titol-pdf-input" value="" placeholder="Introdueix el nom del quadre...">
+      <button class="btn-netejar" onclick="demanarNetejarQuadre()" title="Netejar quadre complet">🗑️</button>
+    </div>
+    <div id="quadre">
+      </div>
   </div>
 
-  <div id="modal" class="modal"><div class="modal-content"><button onclick="tancarModal()">Tancar</button><h3>Components</h3><div id="cataleg" class="btn-grid"></div></div></div>
+  <div class="bottom-bar" id="barra-botons">
+    <button class="btn-app btn-app-verd" onclick="obrirModal()">
+      <span style="font-size: 1.2rem;">🔌</span> Component
+    </button>
+    <button class="btn-app btn-app-blau" onclick="afegirFila()">
+      <span style="font-size: 1.2rem;">➖</span> Fila
+    </button>
+    <button class="btn-app btn-app-groc" onclick="exportarDades()">
+      <span style="font-size: 1.2rem;">💾</span> Guardar
+    </button>
+    <button class="btn-app btn-app-groc" onclick="document.getElementById('file-import').click()">
+      <span style="font-size: 1.2rem;">📂</span> Obrir
+    </button>
+    <button class="btn-app btn-app-vermell" onclick="generarPDF()">
+      <span style="font-size: 1.2rem;">📄</span> PDF
+    </button>
+  </div>
+
+  <input type="file" id="file-import" accept=".json" style="display: none;" onchange="carregarFitxerExterna(event)">
+
+  <div id="modal-pias" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="tancarModal()">&times;</span>
+      <h2>Catàleg de Components</h2>
+      
+      <div class="modal-categoria">Monofàsics i Comandament</div>
+      <div class="grid-components">
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'sobretensions.png', 'sobretensions')">
+          <img src="sobretensions.png" alt="Sobretensions" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Sobretens.</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'diferencial.png', 'diferencial')">
+          <img src="diferencial.png" alt="Diferencial" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Diferencial</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'pia_normal.png', 'pia')">
+          <img src="pia_normal.png" alt="PIA Normal" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>PIA Normal</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(1, 'pia_estret.png', 'pia')">
+          <img src="pia_estret.png" alt="PIA Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>PIA Estret</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'repartidor.png', 'repartidor')">
+          <img src="repartidor.png" alt="Repartidor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Repartidor</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'contactor.png', 'contactor')">
+          <img src="contactor.png" alt="Contactor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Contactor</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(1, 'contactor_estret.png', 'contactor')">
+          <img src="contactor_estret.png" alt="Contactor Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Contact. Estret</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(1, 'minuter.png', 'minuter')">
+          <img src="minuter.png" alt="Minuter" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Minuter</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'rellotge.png', 'rellotge')">
+          <img src="rellotge.png" alt="Rellotge" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Rellotge</p>
+        </div>
+      </div>
+
+      <div class="modal-categoria">Trifàsics</div>
+      <div class="grid-components">
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'sobretensions_trifasic.png', 'sobretensions_tri')">
+          <img src="sobretensions_trifasic.png" alt="Sobretensions Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Sobretens. Tri.</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'diferencial_trifasic.png', 'diferencial_tri')">
+          <img src="diferencial_trifasic.png" alt="Diferencial Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Diferencial Tri.</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'pia_trifasic.png', 'pia')">
+          <img src="pia_trifasic.png" alt="PIA Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>PIA Trifàsic</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(3, 'pia_trifasic_sense_neutre.png', 'pia')">
+          <img src="pia_trifasic_sense_neutre.png" alt="PIA Trifàsic S/N" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>PIA Tri. S/N</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'contactor_trifasic_2_moduls.png', 'contactor_tri')">
+          <img src="contactor_trifasic_2_moduls.png" alt="Contactor Trifàsic 2M" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Contactor Tri. (2M)</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(3, 'contactor_trifasic_3_moduls.png', 'contactor_tri')">
+          <img src="contactor_trifasic_3_moduls.png" alt="Contactor Trifàsic 3M" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Contactor Tri. (3M)</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'repartidor_trifasic.png', 'repartidor_tri')">
+          <img src="repartidor_trifasic.png" alt="Repartidor Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Repartidor Tri.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="modal-missatge" class="modal" style="z-index: 2000;">
+    <div class="modal-content" style="max-width: 320px; padding: 25px;">
+      <h2 id="titol-missatge" style="margin-bottom: 10px;">Quadres Elèctrics</h2>
+      <p id="text-missatge" style="font-size: 0.95rem; color: #34495e; margin-bottom: 25px; line-height: 1.4;"></p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button id="btn-cancelar-missatge" class="btn-app btn-app-vermell" style="display: none; padding: 12px; font-size: 0.85rem; flex: 1;">Cancel·lar</button>
+        <button id="btn-acceptar-missatge" class="btn-app btn-app-blau" style="padding: 12px; font-size: 0.85rem; flex: 1;">D'acord</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const cataleg = [
-      { n: 'Sobretens.', m: 4, i: 'sobretensions.png', t: 'sobretensions' },
-      { n: 'Diferencial', m: 2, i: 'diferencial.png', t: 'diferencial' },
-      { n: 'PIA Normal', m: 2, i: 'pia_normal.png', t: 'pia' },
-      { n: 'PIA Estret', m: 1, i: 'pia_estret.png', t: 'pia' },
-      { n: 'Repartidor', m: 4, i: 'repartidor.png', t: 'repartidor' },
-      { n: 'Contactor', m: 2, i: 'contactor.png', t: 'contactor' },
-      { n: 'Minuter', m: 1, i: 'minuter.png', t: 'minuter' },
-      { n: 'Rellotge', m: 2, i: 'rellotge.png', t: 'rellotge' },
-      { n: 'Sobretens. Tri', m: 6, i: 'sobretensions_trifasic.png', t: 'sobretensions_tri' },
-      { n: 'Dif. Trifàsic', m: 4, i: 'diferencial_trifasic.png', t: 'diferencial_tri' },
-      { n: 'PIA Trifàsic', m: 4, i: 'pia_trifasic.png', t: 'pia' },
-      { n: 'PIA Tri S/N', m: 3, i: 'pia_trifasic_sense_neutre.png', t: 'pia' },
-      { n: 'Contac. Tri 2M', m: 2, i: 'contactor_trifasic_2_moduls.png', t: 'contactor_tri' },
-      { n: 'Contac. Tri 3M', m: 3, i: 'contactor_trifasic_3_moduls.png', t: 'contactor_tri' },
-      { n: 'Repart. Tri', m: 4, i: 'repartidor_trifasic.png', t: 'repartidor_tri' }
-    ];
+    let contadorFiles = 0;
+    let accioConfirmada = null; 
 
-    function afegirFila() {
-      const fila = document.createElement('div');
-      fila.className = 'fila';
-      document.getElementById('quadre').appendChild(fila);
-      new Sortable(fila, { group: 'quadre' });
+    function mostrarAlerta(text) {
+      document.getElementById('titol-missatge').innerText = 'Quadres Elèctrics';
+      document.getElementById('text-missatge').innerText = text;
+      document.getElementById('btn-cancelar-missatge').style.display = 'none';
+      document.getElementById('modal-missatge').style.display = 'flex';
+      
+      document.getElementById('btn-acceptar-missatge').onclick = function() {
+        document.getElementById('modal-missatge').style.display = 'none';
+      };
     }
 
-    function insertarComponente(mod, img, tipo) {
-      const fila = document.querySelector('.fila') || (afegirFila(), document.querySelector('.fila'));
-      const div = document.createElement('div');
-      div.className = `componente mod-${mod}`;
+    function mostrarConfirmacio(text, accio) {
+      document.getElementById('titol-missatge').innerText = 'Quadres Elèctrics';
+      document.getElementById('text-missatge').innerText = text;
+      document.getElementById('btn-cancelar-missatge').style.display = 'block';
+      document.getElementById('modal-missatge').style.display = 'flex';
       
-      // Selectors intel·ligents segons el tipus
-      let selector = `<select><option>Línia...</option></select>`;
-      if (tipo === 'rellotge') selector = `<select><option>Rellotge</option><option>Rellotge 2</option><option>Personalitzat</option></select>`;
-      if (tipo === 'minuter') selector = `<select><option>Minuter</option><option>Minuter d'escala</option></select>`;
+      accioConfirmada = accio;
       
-      div.innerHTML = `
-        <img src="${img}" class="img-component">
-        <div class="inputs-container">
-          ${selector}
-          <button onclick="this.parentElement.parentElement.remove(); autoGuardar()">X</button>
-        </div>
-      `;
-      fila.appendChild(div);
-      tancarModal();
+      document.getElementById('btn-cancelar-missatge').onclick = function() {
+        document.getElementById('modal-missatge').style.display = 'none';
+        accioConfirmada = null;
+      };
+      
+      document.getElementById('btn-acceptar-missatge').onclick = function() {
+        document.getElementById('modal-missatge').style.display = 'none';
+        if (accioConfirmada) accioConfirmada();
+        accioConfirmada = null;
+      };
+    }
+
+    document.addEventListener('input', autoGuardar);
+    document.addEventListener('change', autoGuardar);
+
+    function afegirFila() {
+      contadorFiles++;
+      const idFila = 'fila-' + contadorFiles;
+      
+      const fila = document.createElement('div');
+      fila.className = 'fila';
+      fila.id = idFila;
+      
+      document.querySelectorAll('.fila').forEach(f => f.classList.remove('fila-activa'));
+      fila.classList.add('fila-activa'); 
+      
+      fila.onclick = function(e) {
+        if(e.target === this || e.target.className === 'fila') { 
+            document.querySelectorAll('.fila').forEach(f => f.classList.remove('fila-activa'));
+            this.classList.add('fila-activa');
+        }
+      };
+      
+      document.getElementById('quadre').appendChild(fila);
+
+      new Sortable(fila, {
+        group: 'quadre', 
+        animation: 150, 
+        ghostClass: 'fantasma-drag', 
+        delay: 200, 
+        delayOnTouchOnly: true, 
+        filter: 'input, select, textarea, button', 
+        preventOnFilter: false,
+        onEnd: autoGuardar
+      });
+
       autoGuardar();
     }
 
-    function obrirModal() { document.getElementById('modal').style.display = 'block'; }
-    function tancarModal() { document.getElementById('modal').style.display = 'none'; }
-    function autoGuardar() { localStorage.setItem('quadre', document.getElementById('quadre').innerHTML); }
-    
-    cataleg.forEach(c => {
-      document.getElementById('cataleg').innerHTML += `<button onclick="insertarComponente(${c.m}, '${c.i}', '${c.t}')">${c.n}</button>`;
-    });
-
-    window.onload = () => {
-      document.getElementById('quadre').innerHTML = localStorage.getItem('quadre') || '';
-      if(!document.querySelector('.fila')) afegirFila();
-    };
-
-    function generarPDF() {
-      html2pdf().from(document.getElementById('quadre')).save();
+    function obrirModal() {
+      let filaActiva = document.querySelector('.fila-activa');
+      if (!filaActiva) {
+        mostrarAlerta("Selecciona una fila primer fent clic al seu fons (es posarà verdós).");
+        return;
+      }
+      document.getElementById('modal-pias').style.display = 'flex';
     }
+
+    function tancarModal() {
+      document.getElementById('modal-pias').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const modalPias = document.getElementById('modal-pias');
+      if (event.target === modalPias) tancarModal();
+    }
+
+    function seleccionarElement(espacios, rutaImagen, tipo) {
+      insertarComponente(espacios, rutaImagen, tipo);
+      tancarModal(); 
+    }
+
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    function canviLinia(selectElement) {
+      let inputElement = selectElement.nextElementSibling;
+      if (selectElement.value === 'Personalitzat') {
+        selectElement.style.display = 'none'; 
+        inputElement.value = '';
+        inputElement.style.display = 'block'; 
+        inputElement.focus(); 
+        autoResize(inputElement);
+      } else if (selectElement.value !== '') {
+        selectElement.style.display = 'none';
+        inputElement.value = selectElement.value;
+        inputElement.style.display = 'block';
+        autoResize(inputElement);
+      }
+    }
+
+    function revisarInputBuida(inputElement) {
+      if (inputElement.value.trim() === '') {
+        inputElement.style.display = 'none';
+        let selectElement = inputElement.previousElementSibling;
+        selectElement.value = ''; 
+        selectElement.style.display = 'block';
+      } else {
+        autoResize(inputElement);
+      }
+    }
+
+    function insertarComponente(espacios, rutaImagen, tipo) {
+      let filaActiva = document.querySelector('.fila-activa');
+      
+      const comp = document.createElement('div');
+      comp.className = `componente mod-${espacios}`;
+      comp.setAttribute('data-tipo', tipo);
+      
+      let htmlInputs = '';
+      let selectAmperatge = `
+        <select class="sel-amp">
+          <option value="10A">10A</option>
+          <option value="16A" selected>16A</option>
+          <option value="20A">20A</option>
+          <option value="25A">25A</option>
+          <option value="32A">32A</option>
+          <option value="40A">40A</option>
+          <option value="63A">63A</option>
+        </select>
+      `;
+
+      if (tipo === 'sobretensions') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <textarea class="input-fix in-linia" readonly rows="2">Sobretensions</textarea>
+        `;
+      } else if (tipo === 'sobretensions_tri') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <textarea class="input-fix in-linia" readonly rows="2">Sobretensions trifàsic</textarea>
+        `;
+      } else if (tipo === 'repartidor') {
+        htmlInputs = `
+          <textarea class="input-fix in-linia" readonly rows="2">Repartidor</textarea>
+        `;
+      } else if (tipo === 'repartidor_tri') {
+        htmlInputs = `
+          <textarea class="input-fix in-linia" readonly rows="2">Repartidor trifàsic</textarea>
+        `;
+      } else if (tipo === 'minuter') {
+        htmlInputs = `
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Minuter">Minuter</option>
+            <option value="Minuter d'escala">Minuter d'escala</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      } else if (tipo === 'rellotge') {
+        htmlInputs = `
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Rellotge">Rellotge</option>
+            <option value="Rellotge 2">Rellotge 2</option>
+            <option value="Rellotge 3">Rellotge 3</option>
+            <option value="Rellotge 4">Rellotge 4</option>
+            <option value="Rellotge 5">Rellotge 5</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      } else if (tipo === 'diferencial') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Diferencial 1">Diferencial 1</option>
+            <option value="Diferencial 2">Diferencial 2</option>
+            <option value="Diferencial 3">Diferencial 3</option>
+            <option value="Diferencial 4">Diferencial 4</option>
+            <option value="Diferencial 5">Diferencial 5</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      } else if (tipo === 'diferencial_tri') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Diferencial trifàsic">Diferencial trifàsic</option>
+            <option value="Diferencial trifàsic 2">Diferencial trifàsic 2</option>
+            <option value="Diferencial trifàsic 3">Diferencial trifàsic 3</option>
+            <option value="Diferencial trifàsic 4">Diferencial trifàsic 4</option>
+            <option value="Diferencial trifàsic 5">Diferencial trifàsic 5</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      } else if (tipo === 'contactor') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Contactor">Contactor</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      } else if (tipo === 'contactor_tri') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Contactor trifàsic">Contactor trifàsic</option>
+            <option value="Contactor trifàsic 2">Contactor trifàsic 2</option>
+            <option value="Contactor trifàsic 3">Contactor trifàsic 3</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      } else {
+        /* Aquest és el menú per als PIAS Normals i els PIAS Trifàsics (comparteixen les mateixes línies de la casa) */
+        htmlInputs = `
+          ${selectAmperatge}
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Línia...</option>
+            <option value="Endolls">Endolls</option>
+            <option value="Endolls humits">Endolls humits</option>
+            <option value="Endolls exterior">Endolls exterior</option>
+            <option value="Cuina">Cuina</option>
+            <option value="Cuina i forn">Cuina i forn</option>
+            <option value="Vitroceràmica">Vitroceràmica</option>
+            <option value="Vitroceràmica i forn">Vitroceràmica i forn</option>
+            <option value="Rentadora">Rentadora</option>
+            <option value="Assecadora">Assecadora</option>
+            <option value="Aire condicionat">Aire condicionat</option>
+            <option value="Termo">Termo</option>
+            <option value="Llum">Llum</option>
+            <option value="Llum exterior">Llum exterior</option>
+            <option value="Jardí">Jardí</option>
+            <option value="Piscina">Piscina</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      }
+      
+      comp.innerHTML = `
+        <img src="${rutaImagen}" alt="Component" class="img-component">
+        <div class="inputs-container">
+            ${htmlInputs}
+            <button class="btn-eliminar" onclick="this.parentElement.parentElement.remove(); autoGuardar();">Eliminar</button>
+        </div>
+      `;
+      
+      filaActiva.appendChild(comp);
+      autoGuardar();
+    }
+
+    /* ========================================= */
+    /* 💾 AUTOGUARDAT I CÀRREGA DE PROJECTES     */
+    /* ========================================= */
+    
+    function autoGuardar() {
+      const titol = document.querySelector('.titol-pdf-input').value;
+      const dades = { titol: titol, files: [] };
+
+      document.querySelectorAll('.fila').forEach(fila => {
+        const filaData = [];
+        fila.querySelectorAll('.componente').forEach(comp => {
+          let espacios = 2; // Per defecte
+          // Detectem de quants mòduls és la peça per reconstruir-la exacte
+          if (comp.classList.contains('mod-1')) espacios = 1;
+          else if (comp.classList.contains('mod-3')) espacios = 3;
+          else if (comp.classList.contains('mod-4')) espacios = 4;
+          else if (comp.classList.contains('mod-5')) espacios = 5;
+
+          const img = comp.querySelector('img').getAttribute('src');
+          const tipo = comp.getAttribute('data-tipo') || 'pia';
+          const selAmp = comp.querySelector('.sel-amp');
+          const amperatge = selAmp ? selAmp.value : '';
+          let linia = '';
+          const inputFix = comp.querySelector('.input-fix');
+          if (inputFix) {
+             linia = inputFix.value;
+          } else {
+             const selLinia = comp.querySelector('.sel-linia');
+             const inLinia = comp.querySelector('.in-linia');
+             if (inLinia && inLinia.style.display !== 'none') {
+               linia = inLinia.value;
+             } else if (selLinia) {
+               linia = selLinia.value;
+             }
+          }
+          filaData.push({ espacios, img, tipo, amperatge, linia });
+        });
+        dades.files.push(filaData);
+      });
+      
+      localStorage.setItem('quadre_autosave', JSON.stringify(dades));
+    }
+
+    function demanarNetejarQuadre() {
+      mostrarConfirmacio('Estàs segur que vols esborrar tot el quadre i començar de nou?', function() {
+        localStorage.removeItem('quadre_autosave');
+        document.getElementById('quadre').innerHTML = '';
+        document.querySelector('.titol-pdf-input').value = '';
+        contadorFiles = 0;
+        afegirFila();
+      });
+    }
+
+    function restaurarQuadre(dades) {
+      document.getElementById('quadre').innerHTML = '';
+      document.querySelector('.titol-pdf-input').value = dades.titol || '';
+      contadorFiles = 0;
+
+      if (dades.files && dades.files.length > 0) {
+        dades.files.forEach(filaData => {
+          afegirFila(); 
+          filaData.forEach(compData => {
+            insertarComponente(compData.espacios, compData.img, compData.tipo);
+            const filaActiva = document.querySelector('.fila-activa');
+            const nouComp = filaActiva.lastElementChild;
+            const selAmp = nouComp.querySelector('.sel-amp');
+            if (selAmp && compData.amperatge) selAmp.value = compData.amperatge;
+            const inputFix = nouComp.querySelector('.input-fix');
+            if (!inputFix) {
+              const selLinia = nouComp.querySelector('.sel-linia');
+              const inLinia = nouComp.querySelector('.in-linia');
+              if (selLinia) {
+                let opcioExisteix = Array.from(selLinia.options).some(opt => opt.value === compData.linia);
+                if (opcioExisteix && compData.linia !== '') {
+                  selLinia.value = compData.linia;
+                  canviLinia(selLinia); 
+                } else if (compData.linia !== '') {
+                  selLinia.value = 'Personalitzat';
+                  canviLinia(selLinia); 
+                  inLinia.value = compData.linia;
+                  autoResize(inLinia);
+                }
+              }
+            }
+          });
+        });
+      } else {
+        afegirFila();
+      }
+    }
+
+    function exportarDades() {
+      const titol = document.querySelector('.titol-pdf-input').value.trim();
+      if (titol === '') { 
+        mostrarAlerta('Posa un nom al quadre abans de desar-lo.'); 
+        return; 
+      }
+      
+      autoGuardar();
+      const dadesString = localStorage.getItem('quadre_autosave');
+      
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(dadesString);
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      let nomFitxer = titol.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
+      downloadAnchorNode.setAttribute("download", nomFitxer);
+      document.body.appendChild(downloadAnchorNode); 
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+    }
+
+    function carregarFitxerExterna(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const dades = JSON.parse(e.target.result);
+          restaurarQuadre(dades);
+          autoGuardar();
+        } catch (err) {
+          mostrarAlerta("Error al llegir l'arxiu. Assegura't que has seleccionat un arxiu guardat amb aquesta app.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = ''; 
+    }
+
+    /* ========================================= */
+    /* 📄 FUNCIÓ DE PDF TOTALMENT ARREGLADA */
+    /* ========================================= */
+    function generarPDF() {
+      const titol = document.querySelector('.titol-pdf-input').value.trim();
+      if (titol === '') { 
+        mostrarAlerta('Posa un nom al quadre abans de desar-lo.'); 
+        return; 
+      }
+
+      window.scrollTo(0, 0);
+
+      const element = document.getElementById('area-impresio');
+      const barraBotons = document.getElementById('barra-botons');
+      
+      document.querySelectorAll('.inputs-container').forEach(container => {
+        let ampSelect = container.querySelector('.sel-amp');
+        let amperatgeText = ampSelect ? ampSelect.value : '';
+        let liniaText = '';
+        let inputFix = container.querySelector('.input-fix');
+        
+        if (inputFix) {
+          liniaText = inputFix.value;
+        } else {
+          let selLinia = container.querySelector('.sel-linia');
+          let inLinia = container.querySelector('.in-linia');
+          if (selLinia && selLinia.style.display !== 'none' && selLinia.value !== '') {
+            liniaText = selLinia.value;
+          } else if (inLinia && inLinia.style.display !== 'none') {
+            liniaText = inLinia.value;
+          }
+        }
+
+        let divPrint = document.createElement('div');
+        divPrint.className = 'etiqueta-print';
+        divPrint.innerHTML = `
+          <div class="amp-print">${amperatgeText}</div>
+          <div class="linia-print">${liniaText}</div>
+        `;
+        container.appendChild(divPrint);
+      });
+
+      barraBotons.style.display = 'none'; 
+      document.querySelectorAll('.fila').forEach(f => f.classList.remove('fila-activa')); 
+      element.classList.add('mode-impresio'); 
+
+      let ampladaPx = element.scrollWidth; 
+      let alcadaPx = element.scrollHeight; 
+      
+      let ampladaMm = (ampladaPx * 25.4) / 96; 
+      let alcadaMm = (alcadaPx * 25.4) / 96; 
+
+      let nomFitxer = titol.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
+
+      const opt = {
+        margin:       0, 
+        filename:     nomFitxer,
+        image:        { type: 'jpeg', quality: 1 },
+        html2canvas:  { 
+          scale: 2, 
+          useCORS: true, 
+          scrollY: 0, 
+          scrollX: 0,
+          windowWidth: document.documentElement.scrollWidth 
+        }, 
+        jsPDF:        { unit: 'mm', format: [ampladaMm, alcadaMm], orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        barraBotons.style.display = 'flex';
+        element.classList.remove('mode-impresio');
+        document.querySelectorAll('.etiqueta-print').forEach(el => el.remove());
+      });
+    }
+
+    // 🚀 L'APP ARRANCA AQUÍ
+    window.onload = function() {
+      const memoriaInterna = localStorage.getItem('quadre_autosave');
+      if (memoriaInterna) {
+        restaurarQuadre(JSON.parse(memoriaInterna));
+      } else {
+        afegirFila();
+      }
+    };
   </script>
+
 </body>
 </html>
