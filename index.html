@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>App Quadre Elèctric - PDF Perfecte</title>
+  <title>App Quadre Elèctric - Trifàsics</title>
   
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -64,9 +64,12 @@
     .componente:active { cursor: grabbing; }
     .fantasma-drag { opacity: 0.4; background-color: #e0f7fa; border-radius: 8px; }
 
+    /* 🔥 AFEGIDES LES MIDES EXTRA PER A TRIFÀSICS */
     .mod-1 { width: var(--ample-modul-1); } 
     .mod-2 { width: calc(var(--ample-modul-1) * 2); } 
+    .mod-3 { width: calc(var(--ample-modul-1) * 3); } 
     .mod-4 { width: calc(var(--ample-modul-1) * 4); } 
+    .mod-5 { width: calc(var(--ample-modul-1) * 5); } 
 
     .img-component { width: 100%; height: auto; object-fit: contain; pointer-events: none; display: block; filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.2)); }
 
@@ -95,26 +98,23 @@
     /* MODAL components */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(3px); }
     .modal-content { background-color: #fefefe; padding: 20px; border-radius: 12px; width: 95%; max-width: 450px; max-height: 90vh; overflow-y: auto; position: relative; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .modal-content h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; margin-bottom: 20px;}
+    .modal-content h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px;}
     .close-btn { position: absolute; top: 10px; right: 15px; color: #95a5a6; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
+    
+    /* 🔥 Títols per separar categories al Modal */
+    .modal-categoria { width: 100%; text-align: left; font-size: 0.9rem; color: #7f8c8d; border-bottom: 2px solid #ecf0f1; margin: 15px 0 10px 0; padding-bottom: 5px; text-transform: uppercase; font-weight: bold;}
+    
     .grid-components { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
     .opcio-pia { border: 2px solid #ecf0f1; border-radius: 8px; padding: 10px; width: 85px; cursor: pointer; transition: all 0.2s ease; background-color: #fafafa; }
     .opcio-pia:active { border-color: #3498db; background-color: #ebf5fb; transform: scale(1.05); }
     .opcio-pia img { width: 100%; height: 70px; object-fit: contain; }
-    .opcio-pia p { font-size: 0.75rem; margin: 8px 0 0 0; color: #34495e; font-weight: bold; line-height: 1.2; }
+    .opcio-pia p { font-size: 0.7rem; margin: 8px 0 0 0; color: #34495e; font-weight: bold; line-height: 1.2; }
 
     /* ========================================= */
     /* 🖨️ MÀGIA: AJUSTOS PER A L'EXPORTACIÓ PDF  */
     /* ========================================= */
-    /* 🔥 HEM MODIFICAT AIXÒ: Ara els marges es fan en blanc sobre el propi quadre, no a la impressora */
-    .mode-impresio { 
-        padding: 40px !important; /* Dóna aire per dalt, baix, esquerra i dreta */
-        width: max-content !important; 
-        border: none !important; 
-        background-color: #ffffff !important;
-    }
+    .mode-impresio { padding: 40px !important; width: max-content !important; border: none !important; background-color: #ffffff !important; }
     .mode-impresio #quadre { display: inline-flex; flex-direction: column; align-items: stretch; width: max-content; }
-    /* Sense marges per la dreta a la fila per evitar que creixi el paper a un costat */
     .mode-impresio .fila { width: auto !important; min-width: max-content; overflow: visible !important; border-bottom: none !important; padding-right: 0 !important; }
     .mode-impresio .inputs-container { border: none !important; box-shadow: none !important; background: transparent !important; }
     .mode-impresio .inputs-container > *:not(.etiqueta-print) { display: none !important; }
@@ -137,7 +137,7 @@
 
   <div class="bottom-bar" id="barra-botons">
     <button class="btn-app btn-app-verd" onclick="obrirModal()">
-      <span style="font-size: 1.2rem;">🔌</span> PIA
+      <span style="font-size: 1.2rem;">🔌</span> Component
     </button>
     <button class="btn-app btn-app-blau" onclick="afegirFila()">
       <span style="font-size: 1.2rem;">➖</span> Fila
@@ -158,7 +158,9 @@
   <div id="modal-pias" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="tancarModal()">&times;</span>
-      <h2>Quin component vols muntar?</h2>
+      <h2>Catàleg de Components</h2>
+      
+      <div class="modal-categoria">Monofàsics i Comandament</div>
       <div class="grid-components">
         <div class="opcio-pia" onclick="seleccionarElement(4, 'sobretensions.png', 'sobretensions')">
           <img src="sobretensions.png" alt="Sobretensions" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
@@ -188,7 +190,48 @@
           <img src="contactor_estret.png" alt="Contactor Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Contact. Estret</p>
         </div>
+        <div class="opcio-pia" onclick="seleccionarElement(1, 'minuter.png', 'minuter')">
+          <img src="minuter.png" alt="Minuter" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Minuter</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'rellotge.png', 'rellotge')">
+          <img src="rellotge.png" alt="Rellotge" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Rellotge</p>
+        </div>
       </div>
+
+      <div class="modal-categoria">Trifàsics</div>
+      <div class="grid-components">
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'sobretensions_trifasic.png', 'sobretensions_tri')">
+          <img src="sobretensions_trifasic.png" alt="Sobretensions Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Sobretens. Tri.</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'diferencial_trifasic.png', 'diferencial_tri')">
+          <img src="diferencial_trifasic.png" alt="Diferencial Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Diferencial Tri.</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'pia_trifasic.png', 'pia')">
+          <img src="pia_trifasic.png" alt="PIA Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>PIA Trifàsic</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(3, 'pia_trifasic_sense_neutre.png', 'pia')">
+          <img src="pia_trifasic_sense_neutre.png" alt="PIA Trifàsic S/N" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>PIA Tri. S/N</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'contactor_trifasic_2_moduls.png', 'contactor_tri')">
+          <img src="contactor_trifasic_2_moduls.png" alt="Contactor Trifàsic 2M" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Contactor Tri. (2M)</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(3, 'contactor_trifasic_3_moduls.png', 'contactor_tri')">
+          <img src="contactor_trifasic_3_moduls.png" alt="Contactor Trifàsic 3M" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Contactor Tri. (3M)</p>
+        </div>
+        <div class="opcio-pia" onclick="seleccionarElement(4, 'repartidor_trifasic.png', 'repartidor_tri')">
+          <img src="repartidor_trifasic.png" alt="Repartidor Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <p>Repartidor Tri.</p>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -207,7 +250,6 @@
     let contadorFiles = 0;
     let accioConfirmada = null; 
 
-    // 🔥 SISTEMA D'ALERTES PERSONALITZADES
     function mostrarAlerta(text) {
       document.getElementById('titol-missatge').innerText = 'Quadres Elèctrics';
       document.getElementById('text-missatge').innerText = text;
@@ -356,9 +398,41 @@
           ${selectAmperatge}
           <textarea class="input-fix in-linia" readonly rows="2">Sobretensions</textarea>
         `;
+      } else if (tipo === 'sobretensions_tri') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <textarea class="input-fix in-linia" readonly rows="2">Sobretensions trifàsic</textarea>
+        `;
       } else if (tipo === 'repartidor') {
         htmlInputs = `
           <textarea class="input-fix in-linia" readonly rows="2">Repartidor</textarea>
+        `;
+      } else if (tipo === 'repartidor_tri') {
+        htmlInputs = `
+          <textarea class="input-fix in-linia" readonly rows="2">Repartidor trifàsic</textarea>
+        `;
+      } else if (tipo === 'minuter') {
+        htmlInputs = `
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Minuter">Minuter</option>
+            <option value="Minuter d'escala">Minuter d'escala</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
+      } else if (tipo === 'rellotge') {
+        htmlInputs = `
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Rellotge">Rellotge</option>
+            <option value="Rellotge 2">Rellotge 2</option>
+            <option value="Rellotge 3">Rellotge 3</option>
+            <option value="Rellotge 4">Rellotge 4</option>
+            <option value="Rellotge 5">Rellotge 5</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
         `;
       } else if (tipo === 'diferencial') {
         htmlInputs = `
@@ -374,6 +448,20 @@
           </select>
           <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
         `;
+      } else if (tipo === 'diferencial_tri') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Diferencial trifàsic">Diferencial trifàsic</option>
+            <option value="Diferencial trifàsic 2">Diferencial trifàsic 2</option>
+            <option value="Diferencial trifàsic 3">Diferencial trifàsic 3</option>
+            <option value="Diferencial trifàsic 4">Diferencial trifàsic 4</option>
+            <option value="Diferencial trifàsic 5">Diferencial trifàsic 5</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
       } else if (tipo === 'contactor') {
         htmlInputs = `
           ${selectAmperatge}
@@ -384,7 +472,20 @@
           </select>
           <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
         `;
+      } else if (tipo === 'contactor_tri') {
+        htmlInputs = `
+          ${selectAmperatge}
+          <select class="sel-linia" onchange="canviLinia(this)" required>
+            <option value="" disabled selected>Nom...</option>
+            <option value="Contactor trifàsic">Contactor trifàsic</option>
+            <option value="Contactor trifàsic 2">Contactor trifàsic 2</option>
+            <option value="Contactor trifàsic 3">Contactor trifàsic 3</option>
+            <option value="Personalitzat">✏️ Personalitzat...</option>
+          </select>
+          <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
+        `;
       } else {
+        /* Aquest és el menú per als PIAS Normals i els PIAS Trifàsics (comparteixen les mateixes línies de la casa) */
         htmlInputs = `
           ${selectAmperatge}
           <select class="sel-linia" onchange="canviLinia(this)" required>
@@ -433,9 +534,13 @@
       document.querySelectorAll('.fila').forEach(fila => {
         const filaData = [];
         fila.querySelectorAll('.componente').forEach(comp => {
-          let espacios = 2;
+          let espacios = 2; // Per defecte
+          // Detectem de quants mòduls és la peça per reconstruir-la exacte
           if (comp.classList.contains('mod-1')) espacios = 1;
-          if (comp.classList.contains('mod-4')) espacios = 4;
+          else if (comp.classList.contains('mod-3')) espacios = 3;
+          else if (comp.classList.contains('mod-4')) espacios = 4;
+          else if (comp.classList.contains('mod-5')) espacios = 5;
+
           const img = comp.querySelector('img').getAttribute('src');
           const tipo = comp.getAttribute('data-tipo') || 'pia';
           const selAmp = comp.querySelector('.sel-amp');
@@ -556,7 +661,6 @@
         return; 
       }
 
-      // 🔥 TRUC VITAL: Forcem l'scroll a dalt per evitar l'espai en blanc al PDF
       window.scrollTo(0, 0);
 
       const element = document.getElementById('area-impresio');
@@ -593,7 +697,6 @@
       document.querySelectorAll('.fila').forEach(f => f.classList.remove('fila-activa')); 
       element.classList.add('mode-impresio'); 
 
-      // Ara mesurem les dimensions exactes després d'aplicar el padding de mode impressió
       let ampladaPx = element.scrollWidth; 
       let alcadaPx = element.scrollHeight; 
       
@@ -603,17 +706,16 @@
       let nomFitxer = titol.replace(/["']/g, "").replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
 
       const opt = {
-        margin:       0, // 🔥 Sense marges artificials de la impressora!
+        margin:       0, 
         filename:     nomFitxer,
         image:        { type: 'jpeg', quality: 1 },
         html2canvas:  { 
           scale: 2, 
           useCORS: true, 
-          scrollY: 0, // Segon filtre de seguretat per evitar l'espai blanc
+          scrollY: 0, 
           scrollX: 0,
-          windowWidth: document.documentElement.scrollWidth // Evita que es talli per la dreta
+          windowWidth: document.documentElement.scrollWidth 
         }, 
-        // Creem un paper exactament de la mida que ocupa l'esquema sencer
         jsPDF:        { unit: 'mm', format: [ampladaMm, alcadaMm], orientation: 'portrait' }
       };
 
