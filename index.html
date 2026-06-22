@@ -2,22 +2,16 @@
 <html lang="ca">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>App Quadre Elèctric Compacte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Quadre Elèctric Pro</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-
   <style>
     :root { --ample-modul: 45px; --alcada-img: 130px; }
     body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
     
-    /* 🔥 SEPARACIÓ COMPACTA: Hem reduït el gap a 0px per a que quedin enganxats */
-    .fila { display: flex; gap: 0px; align-items: flex-end; padding: 20px 5px; border-bottom: 2px dashed #ccc; overflow-x: auto; min-height: 220px; }
-    
-    .componente { 
-        display: flex; flex-direction: column; align-items: center; 
-        flex-shrink: 0; background: white; padding: 0px; /* Eliminiem padding extra */
-    }
+    .fila { display: flex; gap: 0; align-items: flex-end; padding: 20px 5px; border-bottom: 2px dashed #ccc; overflow-x: auto; min-height: 220px; }
+    .componente { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; background: white; padding: 2px; }
     
     .mod-1 { width: calc(var(--ample-modul) * 1); }
     .mod-2 { width: calc(var(--ample-modul) * 2); }
@@ -26,8 +20,8 @@
     .mod-6 { width: calc(var(--ample-modul) * 6); }
 
     .img-component { height: var(--alcada-img); width: auto; object-fit: contain; object-position: bottom; }
-    .inputs-container { width: 100%; display: flex; flex-direction: column; gap: 1px; margin-top: 2px; }
-    select, textarea { width: 100%; font-size: 0.6rem; text-align: center; border: 1px solid #eee; }
+    .inputs-container { width: 100%; display: flex; flex-direction: column; gap: 2px; }
+    select { width: 100%; font-size: 0.6rem; text-align: center; }
     
     .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index: 1000; }
     .modal-content { background:white; margin: 5% auto; padding: 20px; width: 90%; max-width: 500px; height: 80%; overflow-y: auto; border-radius: 10px; }
@@ -53,42 +47,27 @@
       { n: 'Diferencial', m: 2, i: 'diferencial.png', t: 'diferencial' },
       { n: 'PIA Normal', m: 2, i: 'pia_normal.png', t: 'pia' },
       { n: 'PIA Estret', m: 1, i: 'pia_estret.png', t: 'pia' },
-      { n: 'Repartidor', m: 4, i: 'repartidor.png', t: 'repartidor' },
       { n: 'Contactor', m: 2, i: 'contactor.png', t: 'contactor' },
-      { n: 'Minuter', m: 1, i: 'minuter.png', t: 'minuter' },
-      { n: 'Rellotge', m: 2, i: 'rellotge.png', t: 'rellotge' },
       { n: 'Sobretens. Tri', m: 6, i: 'sobretensions_trifasic.png', t: 'sobretensions_tri' },
       { n: 'Dif. Trifàsic', m: 4, i: 'diferencial_trifasic.png', t: 'diferencial_tri' },
-      { n: 'PIA Trifàsic', m: 4, i: 'pia_trifasic.png', t: 'pia' },
-      { n: 'PIA Tri S/N', m: 3, i: 'pia_trifasic_sense_neutre.png', t: 'pia' },
-      { n: 'Contac. Tri 2M', m: 2, i: 'contactor_trifasic_2_moduls.png', t: 'contactor_tri' },
-      { n: 'Contac. Tri 3M', m: 3, i: 'contactor_trifasic_3_moduls.png', t: 'contactor_tri' },
-      { n: 'Repart. Tri', m: 4, i: 'repartidor_trifasic.png', t: 'repartidor_tri' }
+      { n: 'PIA Trifàsic', m: 4, i: 'pia_trifasic.png', t: 'pia' }
     ];
 
     function afegirFila() {
       const fila = document.createElement('div');
       fila.className = 'fila';
       document.getElementById('quadre').appendChild(fila);
-      new Sortable(fila, { group: 'quadre', animation: 150 });
+      new Sortable(fila, { group: 'quadre', animation: 150, onEnd: autoGuardar });
     }
 
     function insertarComponente(mod, img, tipo) {
       const fila = document.querySelector('.fila') || (afegirFila(), document.querySelector('.fila'));
       const div = document.createElement('div');
       div.className = `componente mod-${mod}`;
-      
-      // Selectors personalitzats
-      let sel = `<select><option>Línia...</option></select>`;
-      if (tipo === 'rellotge') sel = `<select><option>Rellotge</option><option>Rellotge 2</option><option>Personalitzat</option></select>`;
-      if (tipo === 'minuter') sel = `<select><option>Minuter</option><option>Minuter d'escala</option></select>`;
-      if (tipo === 'contactor_tri') sel = `<select><option>Contactor trifàsic</option><option>Contactor trifàsic 2</option><option>Contactor trifàsic 3</option></select>`;
-      if (tipo === 'diferencial_tri') sel = `<select><option>Diferencial trifàsic</option><option>Diferencial trifàsic 2</option><option>Personalitzat</option></select>`;
-      
       div.innerHTML = `
         <img src="${img}" class="img-component">
         <div class="inputs-container">
-          ${sel}
+          <select><option>Línia...</option></select>
           <button onclick="this.parentElement.parentElement.remove(); autoGuardar()" style="font-size:0.5rem">X</button>
         </div>
       `;
@@ -99,7 +78,7 @@
 
     function obrirModal() { document.getElementById('modal').style.display = 'block'; }
     function tancarModal() { document.getElementById('modal').style.display = 'none'; }
-    function autoGuardar() { localStorage.setItem('quadre', document.getElementById('quadre').innerHTML); }
+    function autoGuardar() { localStorage.setItem('quadre', document.getElementById('quadre').innerHTML); localStorage.setItem('titol', document.getElementById('titol').value); }
     
     cataleg.forEach(c => {
       document.getElementById('cataleg').innerHTML += `<button onclick="insertarComponente(${c.m}, '${c.i}', '${c.t}')">${c.n}</button>`;
@@ -107,14 +86,12 @@
 
     window.onload = () => {
       document.getElementById('quadre').innerHTML = localStorage.getItem('quadre') || '';
+      document.getElementById('titol').value = localStorage.getItem('titol') || '';
+      document.querySelectorAll('.fila').forEach(f => new Sortable(f, { group: 'quadre', animation: 150, onEnd: autoGuardar }));
       if(!document.querySelector('.fila')) afegirFila();
     };
 
-    function generarPDF() {
-      // 🔥 Forcem marges zero al PDF per a que es vegi com a la web
-      const opt = { margin: 0, filename: 'quadre.pdf', html2canvas: { scale: 2 } };
-      html2pdf().set(opt).from(document.getElementById('quadre')).save();
-    }
+    function generarPDF() { html2pdf().from(document.getElementById('quadre')).save(); }
   </script>
 </body>
 </html>
