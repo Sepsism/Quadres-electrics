@@ -98,6 +98,8 @@
     .btn-app-blau { background-color: #3498db; }
     .btn-app-groc { background-color: #f39c12; }
     .btn-app-gris { background-color: #7f8c8d; }
+    /* 🔥 TORNEM A AFEGIR EL COLOR VERMELL PER AL PDF */
+    .btn-app-vermell { background-color: #e74c3c; }
 
     /* MODAL components */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(3px); }
@@ -238,13 +240,13 @@
       <span class="close-btn" onclick="tancarModalGuardar()">&times;</span>
       <h2>Gestió del Projecte</h2>
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
-        <button class="btn-app btn-app-groc" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none;" onclick="exportarDades(); tancarModalGuardar();">
+        <button class="btn-app btn-app-groc" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none; flex-direction: row; justify-content: center;" onclick="exportarDades(); tancarModalGuardar();">
           💾 Guardar Projecte (.json)
         </button>
-        <button class="btn-app btn-app-blau" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none;" onclick="document.getElementById('file-import').click(); tancarModalGuardar();">
+        <button class="btn-app btn-app-blau" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none; flex-direction: row; justify-content: center;" onclick="document.getElementById('file-import').click(); tancarModalGuardar();">
           📂 Obrir Projecte (.json)
         </button>
-        <button class="btn-app btn-app-vermell" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none;" onclick="generarPDF(); tancarModalGuardar();">
+        <button class="btn-app btn-app-vermell" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none; flex-direction: row; justify-content: center;" onclick="generarPDF(); tancarModalGuardar();">
           📄 Exportar a PDF
         </button>
       </div>
@@ -277,7 +279,6 @@
   <script>
     let contadorFiles = 0;
     let accioConfirmada = null; 
-    // 🔥 Variable global per a l'estil actiu (per defecte Realista)
     let estilDissenyActual = localStorage.getItem('quadre_estil_disseny') || 'Realista';
 
     function mostrarAlerta(text) {
@@ -361,7 +362,6 @@
       document.getElementById('modal-pias').style.display = 'none';
     }
 
-    // 🔥 Funcions de control per als nous modals
     function obrirModalGuardar() { document.getElementById('modal-guardar').style.display = 'flex'; }
     function tancarModalGuardar() { document.getElementById('modal-guardar').style.display = 'none'; }
     function obrirModalConfig() { 
@@ -553,10 +553,8 @@
         `;
       }
       
-      // Netejem la ruta per si ve d'un JSON antic
       let nomFitxer = rutaImagen.split('/').pop();
 
-      // 🔥 Màgia de rutes dinàmiques i etiquetatge de fitxers nets
       comp.innerHTML = `
         <img src="Dissenys/${estilDissenyActual}/${nomFitxer}" data-fitxer="${nomFitxer}" alt="Component" class="img-component">
         <div class="inputs-container">
@@ -569,10 +567,6 @@
       autoGuardar();
     }
 
-    /* ========================================= */
-    /* 💾 AUTOGUARDAT I CÀRREGA DE PROJECTES     */
-    /* ========================================= */
-    
     function autoGuardar() {
       const titol = document.querySelector('.titol-pdf-input').value;
       const dades = { titol: titol, files: [] };
@@ -580,12 +574,12 @@
       document.querySelectorAll('.fila').forEach(fila => {
         const filaData = [];
         fila.querySelectorAll('.componente').forEach(comp => {
-          let espacios = 2; // Per defecte
+          let espacios = 2;
           if (comp.classList.contains('mod-1')) espacios = 1;
           else if (comp.classList.contains('mod-3')) espacios = 3;
           else if (comp.classList.contains('mod-4')) espacios = 4;
           else if (comp.classList.contains('mod-5')) espacios = 5;
-          else if (comp.classList.contains('mod-6')) espacios = 6; // 🔥 Línia clau mantinguda
+          else if (comp.classList.contains('mod-6')) espacios = 6;
 
           const img = comp.querySelector('img').getAttribute('data-fitxer') || comp.querySelector('img').getAttribute('src');
           const tipo = comp.getAttribute('data-tipo') || 'pia';
@@ -698,9 +692,6 @@
       event.target.value = ''; 
     }
 
-    /* ========================================= */
-    /* 🔥 ENGINY DE SISTEMA DINÀMIC DE DISSENY   */
-    /* ========================================= */
     function canviarEstilDisseny(nouEstil) {
       estilDissenyActual = nouEstil;
       localStorage.setItem('quadre_estil_disseny', nouEstil);
@@ -708,16 +699,13 @@
     }
 
     function actualitzarEstilVisual() {
-      // 1. Actualitza el fons del carril DIN dinàmicament usant variables CSS
       document.documentElement.style.setProperty('--url-carril', `url('Dissenys/${estilDissenyActual}/carril_din.png')`);
       
-      // 2. Actualitza els components actius del quadre
       document.querySelectorAll('.componente img').forEach(img => {
         const fitxer = img.getAttribute('data-fitxer');
         if(fitxer) img.src = `Dissenys/${estilDissenyActual}/${fitxer}`;
       });
 
-      // 3. Actualitza les previsualitzacions del propi catàleg/modal
       document.querySelectorAll('#modal-pias img').forEach(img => {
         const fitxer = img.getAttribute('data-fitxer');
         if(fitxer) img.src = `Dissenys/${estilDissenyActual}/${fitxer}`;
@@ -725,9 +713,6 @@
       autoGuardar();
     }
 
-    /* ========================================= */
-    /* 📄 FUNCIÓ DE PDF TOTALMENT ARREGLADA      */
-    /* ========================================= */
     function generarPDF() {
       const titol = document.querySelector('.titol-pdf-input').value.trim();
       if (titol === '') { 
@@ -800,7 +785,6 @@
       });
     }
 
-    // 🚀 L'APP ARRANCA AQUÍ SINCRONITZADA
     window.onload = function() {
       const memoriaInterna = localStorage.getItem('quadre_autosave');
       if (memoriaInterna) {
@@ -808,7 +792,6 @@
       } else {
         afegirFila();
       }
-      // Forçar l'aplicació d'estils i carril correcte des del primer segon
       actualitzarEstilVisual();
     };
   </script>
