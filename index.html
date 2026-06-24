@@ -22,6 +22,8 @@
       --alcada-carril: 75px;       
       --posicio-carril-y: 80px;
       --mida-text: 0.75rem;
+      /* 🔥 Variable dinàmica inicial per al Carril DIN */
+      --url-carril: url('Dissenys/Realista/carril_din.png');
     }
 
     @media (max-width: 600px) {
@@ -54,9 +56,10 @@
       overflow-x: auto; align-items: flex-start; position: relative; min-height: 140px; transition: background-color 0.3s ease; 
     }
     .fila-activa { background-color: #ebf7f1; }
+    /* 🔥 Modificat per a que la ruta del carril canviï segons el disseny */
     .fila::before {
       content: ''; position: absolute; left: 0; right: 0; top: var(--posicio-carril-y); height: var(--alcada-carril); 
-      background-image: url('carril_din.png'); background-repeat: repeat-x; background-size: auto 100%; z-index: 0; 
+      background-image: var(--url-carril); background-repeat: repeat-x; background-size: auto 100%; z-index: 0; 
     }
 
     /* EL COMPONENT */
@@ -64,13 +67,13 @@
     .componente:active { cursor: grabbing; }
     .fantasma-drag { opacity: 0.4; background-color: #e0f7fa; border-radius: 8px; }
 
-    /* 🔥 AFEGIDES LES MIDES EXTRA PER A TRIFÀSICS */
+    /* 🔥 MIDES EXTRA PER A TRIFÀSICS */
     .mod-1 { width: var(--ample-modul-1); } 
     .mod-2 { width: calc(var(--ample-modul-1) * 2); } 
     .mod-3 { width: calc(var(--ample-modul-1) * 3); } 
     .mod-4 { width: calc(var(--ample-modul-1) * 4); } 
     .mod-5 { width: calc(var(--ample-modul-1) * 5); }
-	.mod-6 { width: calc(var(--ample-modul-1) * 6); }
+    .mod-6 { width: calc(var(--ample-modul-1) * 6); }
 
     .img-component { width: 100%; height: auto; object-fit: contain; pointer-events: none; display: block; filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.2)); }
 
@@ -87,14 +90,14 @@
 
     .btn-eliminar { color: #e74c3c; background: transparent; border: none; text-decoration: underline; font-size: var(--mida-text); cursor: pointer; margin-top: 5px; padding: 2px; }
 
-    /* 📱 BARRA INFERIOR DE BOTONS */
+    /* 📱 BARRA INFERIOR DE BOTONS MODIFICADA */
     .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background-color: #ffffff; display: flex; justify-content: space-between; gap: 5px; padding: 10px 5px 15px 5px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 500; }
     .btn-app { flex: 1; padding: 10px 2px; border: none; border-radius: 6px; font-weight: bold; font-size: 0.7rem; color: white; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .btn-app:active { transform: scale(0.95); }
     .btn-app-verd { background-color: #27ae60; }
     .btn-app-blau { background-color: #3498db; }
-    .btn-app-vermell { background-color: #e74c3c; }
     .btn-app-groc { background-color: #f39c12; }
+    .btn-app-gris { background-color: #7f8c8d; }
 
     /* MODAL components */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(3px); }
@@ -102,7 +105,6 @@
     .modal-content h2 { margin-top: 0; color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px;}
     .close-btn { position: absolute; top: 10px; right: 15px; color: #95a5a6; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
     
-    /* 🔥 Títols per separar categories al Modal */
     .modal-categoria { width: 100%; text-align: left; font-size: 0.9rem; color: #7f8c8d; border-bottom: 2px solid #ecf0f1; margin: 15px 0 10px 0; padding-bottom: 5px; text-transform: uppercase; font-weight: bold;}
     
     .grid-components { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
@@ -132,8 +134,7 @@
       <input type="text" class="titol-pdf-input" value="" placeholder="Introdueix el nom del quadre...">
       <button class="btn-netejar" onclick="demanarNetejarQuadre()" title="Netejar quadre complet">🗑️</button>
     </div>
-    <div id="quadre">
-      </div>
+    <div id="quadre"></div>
   </div>
 
   <div class="bottom-bar" id="barra-botons">
@@ -143,14 +144,11 @@
     <button class="btn-app btn-app-blau" onclick="afegirFila()">
       <span style="font-size: 1.2rem;">➖</span> Fila
     </button>
-    <button class="btn-app btn-app-groc" onclick="exportarDades()">
+    <button class="btn-app btn-app-groc" onclick="obrirModalGuardar()">
       <span style="font-size: 1.2rem;">💾</span> Guardar
     </button>
-    <button class="btn-app btn-app-groc" onclick="document.getElementById('file-import').click()">
-      <span style="font-size: 1.2rem;">📂</span> Obrir
-    </button>
-    <button class="btn-app btn-app-vermell" onclick="generarPDF()">
-      <span style="font-size: 1.2rem;">📄</span> PDF
+    <button class="btn-app btn-app-gris" onclick="obrirModalConfig()">
+      <span style="font-size: 1.2rem;">⚙️</span> Configuració
     </button>
   </div>
 
@@ -164,39 +162,39 @@
       <div class="modal-categoria">Monofàsics i Comandament</div>
       <div class="grid-components">
         <div class="opcio-pia" onclick="seleccionarElement(4, 'sobretensions.png', 'sobretensions')">
-          <img src="sobretensions.png" alt="Sobretensions" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="sobretensions.png" data-fitxer="sobretensions.png" alt="Sobretensions" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Sobretens.</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(2, 'diferencial.png', 'diferencial')">
-          <img src="diferencial.png" alt="Diferencial" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="diferencial.png" data-fitxer="diferencial.png" alt="Diferencial" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Diferencial</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(2, 'pia_normal.png', 'pia')">
-          <img src="pia_normal.png" alt="PIA Normal" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="pia_normal.png" data-fitxer="pia_normal.png" alt="PIA Normal" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>PIA Normal</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(1, 'pia_estret.png', 'pia')">
-          <img src="pia_estret.png" alt="PIA Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="pia_estret.png" data-fitxer="pia_estret.png" alt="PIA Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>PIA Estret</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(4, 'repartidor.png', 'repartidor')">
-          <img src="repartidor.png" alt="Repartidor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="repartidor.png" data-fitxer="repartidor.png" alt="Repartidor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Repartidor</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(2, 'contactor.png', 'contactor')">
-          <img src="contactor.png" alt="Contactor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="contactor.png" data-fitxer="contactor.png" alt="Contactor" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Contactor</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(1, 'contactor_estret.png', 'contactor')">
-          <img src="contactor_estret.png" alt="Contactor Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="contactor_estret.png" data-fitxer="contactor_estret.png" alt="Contactor Estret" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Contact. Estret</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(1, 'minuter.png', 'minuter')">
-          <img src="minuter.png" alt="Minuter" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="minuter.png" data-fitxer="minuter.png" alt="Minuter" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Minuter</p>
         </div>
-        <div class="opcio-pia" onclick="seleccionarElement(1, 'rellotge.png', 'rellotge')">
-          <img src="rellotge.png" alt="Rellotge" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+        <div class="opcio-pia" onclick="seleccionarElement(2, 'rellotge.png', 'rellotge')">
+          <img src="rellotge.png" data-fitxer="rellotge.png" alt="Rellotge" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Rellotge</p>
         </div>
       </div>
@@ -204,35 +202,64 @@
       <div class="modal-categoria">Trifàsics</div>
       <div class="grid-components">
         <div class="opcio-pia" onclick="seleccionarElement(6, 'sobretensions_trifasic.png', 'sobretensions_tri')">
-          <img src="sobretensions_trifasic.png" alt="Sobretensions Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="sobretensions_trifasic.png" data-fitxer="sobretensions_trifasic.png" alt="Sobretensions Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Sobretens. Tri.</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(4, 'diferencial_trifasic.png', 'diferencial_tri')">
-          <img src="diferencial_trifasic.png" alt="Diferencial Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="diferencial_trifasic.png" data-fitxer="diferencial_trifasic.png" alt="Diferencial Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Diferencial Tri.</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(4, 'pia_trifasic.png', 'pia')">
-          <img src="pia_trifasic.png" alt="PIA Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="pia_trifasic.png" data-fitxer="pia_trifasic.png" alt="PIA Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>PIA Trifàsic</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(3, 'pia_trifasic_sense_neutre.png', 'pia')">
-          <img src="pia_trifasic_sense_neutre.png" alt="PIA Trifàsic S/N" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="pia_trifasic_sense_neutre.png" data-fitxer="pia_trifasic_sense_neutre.png" alt="PIA Trifàsic S/N" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>PIA Tri. S/N</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(2, 'contactor_trifasic_2_moduls.png', 'contactor_tri')">
-          <img src="contactor_trifasic_2_moduls.png" alt="Contactor Trifàsic 2M" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="contactor_trifasic_2_moduls.png" data-fitxer="contactor_trifasic_2_moduls.png" alt="Contactor Trifàsic 2M" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Contactor Tri. (2M)</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(3, 'contactor_trifasic_3_moduls.png', 'contactor_tri')">
-          <img src="contactor_trifasic_3_moduls.png" alt="Contactor Trifàsic 3M" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="contactor_trifasic_3_moduls.png" data-fitxer="contactor_trifasic_3_moduls.png" alt="Contactor Trifàsic 3M" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Contactor Tri. (3M)</p>
         </div>
         <div class="opcio-pia" onclick="seleccionarElement(4, 'repartidor_trifasic.png', 'repartidor_tri')">
-          <img src="repartidor_trifasic.png" alt="Repartidor Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
+          <img src="repartidor_trifasic.png" data-fitxer="repartidor_trifasic.png" alt="Repartidor Trifàsic" onerror="this.src='https://via.placeholder.com/80x80?text=IMG'">
           <p>Repartidor Tri.</p>
         </div>
       </div>
+    </div>
+  </div>
 
+  <div id="modal-guardar" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="tancarModalGuardar()">&times;</span>
+      <h2>Gestió del Projecte</h2>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+        <button class="btn-app btn-app-groc" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none;" onclick="exportarDades(); tancarModalGuardar();">
+          💾 Guardar Projecte (.json)
+        </button>
+        <button class="btn-app btn-app-blau" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none;" onclick="document.getElementById('file-import').click(); tancarModalGuardar();">
+          📂 Obrir Projecte (.json)
+        </button>
+        <button class="btn-app btn-app-vermell" style="width: 100%; padding: 12px; font-size: 0.9rem; flex: none;" onclick="generarPDF(); tancarModalGuardar();">
+          📄 Exportar a PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-config" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="tancarModalConfig()">&times;</span>
+      <h2>Configuració</h2>
+      <div class="modal-categoria" style="text-align: center; margin-bottom: 5px;">Estil de Disseny</div>
+      <select id="select-estil-disseny" onchange="canviarEstilDisseny(this.value)" style="width: 100%; padding: 8px; font-size: 1rem; font-weight: bold; text-align-last: center;">
+        <option value="Realista">Realista</option>
+        <option value="Dibuix">Dibuix</option>
+      </select>
     </div>
   </div>
 
@@ -250,6 +277,8 @@
   <script>
     let contadorFiles = 0;
     let accioConfirmada = null; 
+    // 🔥 Variable global per a l'estil actiu (per defecte Realista)
+    let estilDissenyActual = localStorage.getItem('quadre_estil_disseny') || 'Realista';
 
     function mostrarAlerta(text) {
       document.getElementById('titol-missatge').innerText = 'Quadres Elèctrics';
@@ -332,9 +361,22 @@
       document.getElementById('modal-pias').style.display = 'none';
     }
 
+    // 🔥 Funcions de control per als nous modals
+    function obrirModalGuardar() { document.getElementById('modal-guardar').style.display = 'flex'; }
+    function tancarModalGuardar() { document.getElementById('modal-guardar').style.display = 'none'; }
+    function obrirModalConfig() { 
+      document.getElementById('select-estil-disseny').value = estilDissenyActual;
+      document.getElementById('modal-config').style.display = 'flex'; 
+    }
+    function tancarModalConfig() { document.getElementById('modal-config').style.display = 'none'; }
+
     window.onclick = function(event) {
       const modalPias = document.getElementById('modal-pias');
+      const modalGuardar = document.getElementById('modal-guardar');
+      const modalConfig = document.getElementById('modal-config');
       if (event.target === modalPias) tancarModal();
+      if (event.target === modalGuardar) tancarModalGuardar();
+      if (event.target === modalConfig) tancarModalConfig();
     }
 
     function seleccionarElement(espacios, rutaImagen, tipo) {
@@ -486,7 +528,6 @@
           <textarea class="in-linia" rows="2" placeholder="Escriu..." style="display:none;" onblur="revisarInputBuida(this)" oninput="autoResize(this)"></textarea>
         `;
       } else {
-        /* Aquest és el menú per als PIAS Normals i els PIAS Trifàsics (comparteixen les mateixes línies de la casa) */
         htmlInputs = `
           ${selectAmperatge}
           <select class="sel-linia" onchange="canviLinia(this)" required>
@@ -512,8 +553,12 @@
         `;
       }
       
+      // Netejem la ruta per si ve d'un JSON antic
+      let nomFitxer = rutaImagen.split('/').pop();
+
+      // 🔥 Màgia de rutes dinàmiques i etiquetatge de fitxers nets
       comp.innerHTML = `
-        <img src="${rutaImagen}" alt="Component" class="img-component">
+        <img src="Dissenys/${estilDissenyActual}/${nomFitxer}" data-fitxer="${nomFitxer}" alt="Component" class="img-component">
         <div class="inputs-container">
             ${htmlInputs}
             <button class="btn-eliminar" onclick="this.parentElement.parentElement.remove(); autoGuardar();">Eliminar</button>
@@ -536,14 +581,13 @@
         const filaData = [];
         fila.querySelectorAll('.componente').forEach(comp => {
           let espacios = 2; // Per defecte
-          // Detectem de quants mòduls és la peça per reconstruir-la exacte
           if (comp.classList.contains('mod-1')) espacios = 1;
           else if (comp.classList.contains('mod-3')) espacios = 3;
           else if (comp.classList.contains('mod-4')) espacios = 4;
           else if (comp.classList.contains('mod-5')) espacios = 5;
-		  else if (comp.classList.contains('mod-6')) espacios = 6;
+          else if (comp.classList.contains('mod-6')) espacios = 6; // 🔥 Línia clau mantinguda
 
-          const img = comp.querySelector('img').getAttribute('src');
+          const img = comp.querySelector('img').getAttribute('data-fitxer') || comp.querySelector('img').getAttribute('src');
           const tipo = comp.getAttribute('data-tipo') || 'pia';
           const selAmp = comp.querySelector('.sel-amp');
           const amperatge = selAmp ? selAmp.value : '';
@@ -644,6 +688,7 @@
         try {
           const dades = JSON.parse(e.target.result);
           restaurarQuadre(dades);
+          actualitzarEstilVisual();
           autoGuardar();
         } catch (err) {
           mostrarAlerta("Error al llegir l'arxiu. Assegura't que has seleccionat un arxiu guardat amb aquesta app.");
@@ -654,7 +699,34 @@
     }
 
     /* ========================================= */
-    /* 📄 FUNCIÓ DE PDF TOTALMENT ARREGLADA */
+    /* 🔥 ENGINY DE SISTEMA DINÀMIC DE DISSENY   */
+    /* ========================================= */
+    function canviarEstilDisseny(nouEstil) {
+      estilDissenyActual = nouEstil;
+      localStorage.setItem('quadre_estil_disseny', nouEstil);
+      actualitzarEstilVisual();
+    }
+
+    function actualitzarEstilVisual() {
+      // 1. Actualitza el fons del carril DIN dinàmicament usant variables CSS
+      document.documentElement.style.setProperty('--url-carril', `url('Dissenys/${estilDissenyActual}/carril_din.png')`);
+      
+      // 2. Actualitza els components actius del quadre
+      document.querySelectorAll('.componente img').forEach(img => {
+        const fitxer = img.getAttribute('data-fitxer');
+        if(fitxer) img.src = `Dissenys/${estilDissenyActual}/${fitxer}`;
+      });
+
+      // 3. Actualitza les previsualitzacions del propi catàleg/modal
+      document.querySelectorAll('#modal-pias img').forEach(img => {
+        const fitxer = img.getAttribute('data-fitxer');
+        if(fitxer) img.src = `Dissenys/${estilDissenyActual}/${fitxer}`;
+      });
+      autoGuardar();
+    }
+
+    /* ========================================= */
+    /* 📄 FUNCIÓ DE PDF TOTALMENT ARREGLADA      */
     /* ========================================= */
     function generarPDF() {
       const titol = document.querySelector('.titol-pdf-input').value.trim();
@@ -728,7 +800,7 @@
       });
     }
 
-    // 🚀 L'APP ARRANCA AQUÍ
+    // 🚀 L'APP ARRANCA AQUÍ SINCRONITZADA
     window.onload = function() {
       const memoriaInterna = localStorage.getItem('quadre_autosave');
       if (memoriaInterna) {
@@ -736,6 +808,8 @@
       } else {
         afegirFila();
       }
+      // Forçar l'aplicació d'estils i carril correcte des del primer segon
+      actualitzarEstilVisual();
     };
   </script>
 
